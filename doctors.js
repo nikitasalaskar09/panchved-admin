@@ -3,8 +3,14 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Backend API Base URL
-  const API_BASE_URL = window.API_BASE_URL || 'https://digitalbolt.co/nikita/panchved-admin/api';
+  // Preemptively set anti-bot cookie if allowed
+  try {
+    document.cookie = "humans_21909=1; path=/; max-age=31536000; SameSite=Lax";
+  } catch (_) {}
+
+  // Smart API Base URL: same-origin 'api' when hosted on digitalbolt.co, full URL when local
+  const isSameHost = window.location.hostname === 'digitalbolt.co' || window.location.hostname === 'www.digitalbolt.co';
+  const API_BASE_URL = window.API_BASE_URL || (isSameHost ? 'api' : 'https://digitalbolt.co/nikita/panchved-admin/api');
 
   // View Containers
   const doctorsListView = document.getElementById('doctorsListView');
@@ -186,13 +192,18 @@ document.addEventListener('DOMContentLoaded', () => {
       </tr>
     `;
 
-    const queryParams = new URLSearchParams({
-      page: String(currentPage),
-      limit: String(itemsPerPage),
-      search: currentSearchQuery,
-      status: currentStatusFilter,
-      expertise: currentExpertiseFilter
-    });
+    const queryParams = new URLSearchParams();
+    queryParams.set('page', String(currentPage));
+    queryParams.set('limit', String(itemsPerPage));
+    if (currentSearchQuery && currentSearchQuery.trim()) {
+      queryParams.set('search', currentSearchQuery.trim());
+    }
+    if (currentStatusFilter && currentStatusFilter !== 'all') {
+      queryParams.set('status', currentStatusFilter);
+    }
+    if (currentExpertiseFilter && currentExpertiseFilter.trim()) {
+      queryParams.set('expertise', currentExpertiseFilter.trim());
+    }
 
     try {
       const response = await fetch(`${API_BASE_URL}/get_doctors.php?${queryParams.toString()}`, {
@@ -202,6 +213,16 @@ document.addEventListener('DOMContentLoaded', () => {
           'Accept': 'application/json'
         }
       });
+
+      if (response.status === 409) {
+        const rawText = await response.text().catch(() => '');
+        if (rawText.includes('humans_21909')) {
+          try {
+            document.cookie = "humans_21909=1; path=/; max-age=31536000; SameSite=Lax";
+          } catch (_) {}
+          throw new Error('BLUEHOST_BOT_PROTECTION_BLOCKED');
+        }
+      }
 
       const result = await response.json().catch(() => ({}));
 
@@ -218,16 +239,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       console.warn('API Error:', err.message);
-      doctorsTableBody.innerHTML = `
-        <tr>
-          <td colspan="5" style="text-align: center; padding: 36px; color: #ef4444;">
-            <p style="margin-bottom: 8px; font-weight: 600;">${err.message}</p>
-            <button type="button" class="filter-btn" style="display:inline-flex; padding: 6px 14px; font-size:13px;" onclick="window.retryFetchDoctors()">
-              Retry
-            </button>
-          </td>
-        </tr>
-      `;
+      if (err.message === 'BLUEHOST_BOT_PROTECTION_BLOCKED') {
+        doctorsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 36px;">
+              <div style="max-width: 520px; margin: 0 auto; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 20px;">
+                <p style="font-weight: 700; color: #9f1239; margin-bottom: 6px; font-size: 15px;">Host Anti-Bot Verification Required</p>
+                <p style="color: #4c0519; font-size: 13px; line-height: 1.5; margin-bottom: 14px;">
+                  Bluehost's firewall returned <strong>409 Conflict</strong> (rule: <code>humans_21909</code>). Open the API URL in a tab once to verify your browser, or disable ModSecurity in cPanel:
+                </p>
+                <div style="display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap;">
+                  <a href="${API_BASE_URL}/get_doctors.php" target="_blank" class="filter-btn" style="text-decoration:none; padding: 8px 16px; background:#e11d48; color:#fff; font-weight:600; font-size:13px; border-radius:6px; display:inline-flex; align-items:center; gap:6px;">
+                    1. Authorize Browser (Open API Link) &rarr;
+                  </a>
+                  <button type="button" class="filter-btn" style="padding: 8px 16px; font-size:13px; background:#fff; border:1px solid #cbd5e1;" onclick="window.retryFetchDoctors()">
+                    2. Retry Fetch
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      } else {
+        doctorsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 36px; color: #ef4444;">
+              <p style="margin-bottom: 8px; font-weight: 600;">${err.message}</p>
+              <button type="button" class="filter-btn" style="display:inline-flex; padding: 6px 14px; font-size:13px;" onclick="window.retryFetchDoctors()">
+                Retry
+              </button>
+            </td>
+          </tr>
+        `;
+      }
     }
   }
 
