@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Panchved Complete Ayurved &amp; Physiotherapy Rehab Center</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    
+    <!-- Mobile Header Bar with Hamburger -->
+    <header class="mobile-topbar">
+      <button class="menu-toggle-btn" id="menuToggleBtn" aria-label="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <div class="mobile-logo-title">
+        <span class="brand-title">Panchved</span>
+      </div>
+      <div class="user-avatar-sm">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+        </svg>
+      </div>
+    </header>
+
+    <!-- Sidebar Overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Logo Section -->
+      <div class="brand-section">
+        <a href="dashboard.html" class="brand-logo" aria-label="Panchved Logo">
+          <img src="assets/logo.svg" alt="Panchved - Complete Ayurved &amp; Physiotherapy Rehab center" class="brand-logo-img">
+        </a>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="dashboard.html" class="nav-link active">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="patients.html" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Patients</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="doctors.html" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              <span>Doctors</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="appointments.html" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Appointments</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="packages.html" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Package</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="workshops.html" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+                <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+                <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+                <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+              </svg>
+              <span>Workshops</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Logout Button at bottom -->
+      <div class="sidebar-footer">
+        <a href="index.html" class="logout-btn">
+          <svg class="logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Log out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Dashboard Header -->
+      <header class="content-header">
+        <div class="header-titles">
+          <h1 class="page-title">Dashboard</h1>
+          <p class="welcome-text">Welcome Back John Doe!</p>
+        </div>
+
+        <!-- User Profile Badge -->
+        <div class="user-profile-badge" tabindex="0" role="button" aria-label="User Profile for John Doe">
+          <div class="avatar-circle">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+          <div class="user-info">
+            <span class="user-name">John Doe</span>
+            <span class="user-role">Admin</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Stats / Metrics Grid -->
+      <section class="stats-grid" aria-label="Overview Statistics">
+        
+        <!-- Total Patient Card -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-title">Total Patient</span>
+            <div class="stat-icon-wrapper">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value">12</div>
+        </div>
+
+        <!-- Total Doctors Card -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-title">Total Doctors</span>
+            <div class="stat-icon-wrapper">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value">34</div>
+        </div>
+
+        <!-- Total Packages Card -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-title">Total Packages</span>
+            <div class="stat-icon-wrapper">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value">12</div>
+        </div>
+
+        <!-- Total Workshops Card -->
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-title">Total Workshops</span>
+            <div class="stat-icon-wrapper">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value">3</div>
+        </div>
+
+      </section>
+
+      <!-- Chart Section: Total Patients Onboarded -->
+      <section class="chart-card" aria-label="Patients Onboarded Chart">
+        
+        <div class="chart-card-header">
+          <h2 class="chart-title">Total Patients Onboarded</h2>
+          
+          <div class="chart-filter-wrapper">
+            <div class="custom-select" id="timeFilterSelect" tabindex="0" role="combobox" aria-label="Select time range">
+              <span class="selected-option" id="selectedTimeRange">Last 12 months</span>
+              <svg class="dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive SVG Chart Viewport -->
+        <div class="chart-container">
+          <div class="svg-chart-wrapper">
+            <svg class="patients-svg-chart" id="patientsChart" viewBox="0 0 920 380" preserveAspectRatio="none">
+              <defs>
+                <!-- Teal Area Gradient -->
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#00828A" stop-opacity="0.28"/>
+                  <stop offset="65%" stop-color="#00828A" stop-opacity="0.10"/>
+                  <stop offset="100%" stop-color="#00828A" stop-opacity="0.01"/>
+                </linearGradient>
+
+                <!-- Tooltip Drop Shadow Filter -->
+                <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.08"/>
+                </filter>
+              </defs>
+
+              <!-- Y-Axis Grid Lines & Labels (0, 2, 4, 6, 8, 10) -->
+              <g class="grid-lines-y">
+                <!-- 10 -->
+                <text x="36" y="44" class="axis-label y-axis-label">10</text>
+                <line x1="56" y1="40" x2="880" y2="40" class="grid-line horizontal-line"/>
+
+                <!-- 8 -->
+                <text x="40" y="104" class="axis-label y-axis-label">8</text>
+                <line x1="56" y1="100" x2="880" y2="100" class="grid-line horizontal-line"/>
+
+                <!-- 6 -->
+                <text x="40" y="164" class="axis-label y-axis-label">6</text>
+                <line x1="56" y1="160" x2="880" y2="160" class="grid-line horizontal-line"/>
+
+                <!-- 4 -->
+                <text x="40" y="224" class="axis-label y-axis-label">4</text>
+                <line x1="56" y1="220" x2="880" y2="220" class="grid-line horizontal-line"/>
+
+                <!-- 2 -->
+                <text x="40" y="284" class="axis-label y-axis-label">2</text>
+                <line x1="56" y1="280" x2="880" y2="280" class="grid-line horizontal-line"/>
+
+                <!-- 0 -->
+                <text x="40" y="344" class="axis-label y-axis-label">0</text>
+                <line x1="56" y1="340" x2="880" y2="340" class="grid-line axis-baseline"/>
+              </g>
+
+              <!-- X-Axis Vertical Dotted Grid Lines -->
+              <g class="grid-lines-x">
+                <line x1="75" y1="40" x2="75" y2="340" class="grid-line vertical-line"/>
+                <line x1="147" y1="40" x2="147" y2="340" class="grid-line vertical-line"/>
+                <line x1="220" y1="40" x2="220" y2="340" class="grid-line vertical-line"/>
+                <line x1="292" y1="40" x2="292" y2="340" class="grid-line vertical-line"/>
+                <line x1="365" y1="40" x2="365" y2="340" class="grid-line vertical-line"/>
+                <line x1="437" y1="40" x2="437" y2="340" class="grid-line vertical-line"/>
+                <line x1="510" y1="40" x2="510" y2="340" class="grid-line vertical-line"/>
+                <line x1="582" y1="40" x2="582" y2="340" class="grid-line vertical-line"/>
+                <line x1="655" y1="40" x2="655" y2="340" class="grid-line vertical-line"/>
+                <line x1="727" y1="40" x2="727" y2="340" class="grid-line vertical-line"/>
+                <line x1="800" y1="40" x2="800" y2="340" class="grid-line vertical-line"/>
+                <line x1="872" y1="40" x2="872" y2="340" class="grid-line vertical-line"/>
+              </g>
+
+              <!-- Filled Area Under Spline Curve -->
+              <path class="chart-area" d="
+                M 75 340
+                L 75 130
+                C 95 130, 125 305, 147 305
+                C 170 305, 195 245, 220 245
+                C 245 245, 270 280, 292 280
+                C 315 280, 340 185, 365 185
+                C 390 185, 415 320, 437 320
+                C 460 320, 485 170, 510 170
+                C 535 170, 560 305, 582 305
+                C 605 305, 630 170, 655 170
+                C 680 170, 705 190, 727 190
+                C 750 190, 775 62, 800 62
+                C 825 62, 850 215, 872 215
+                L 872 340
+                Z
+              " fill="url(#chartGradient)"/>
+
+              <!-- Smooth Spline Stroke Curve -->
+              <path class="chart-stroke" d="
+                M 75 130
+                C 95 130, 125 305, 147 305
+                C 170 305, 195 245, 220 245
+                C 245 245, 270 280, 292 280
+                C 315 280, 340 185, 365 185
+                C 390 185, 415 320, 437 320
+                C 460 320, 485 170, 510 170
+                C 535 170, 560 305, 582 305
+                C 605 305, 630 170, 655 170
+                C 680 170, 705 190, 727 190
+                C 750 190, 775 62, 800 62
+                C 825 62, 850 215, 872 215
+              " fill="none" stroke="#00828A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <!-- Data Point Markers (Circles) -->
+              <g class="chart-points">
+                <!-- Oct: 7 -->
+                <circle cx="75" cy="130" r="4.5" class="point-circle" data-month="Oct" data-val="140"/>
+                <circle cx="75" cy="130" r="9" class="point-halo"/>
+
+                <!-- Nov: 1.8 -->
+                <circle cx="147" cy="305" r="4.5" class="point-circle" data-month="Nov" data-val="36"/>
+                <circle cx="147" cy="305" r="9" class="point-halo"/>
+
+                <!-- Dec: 3.2 -->
+                <circle cx="220" cy="245" r="4.5" class="point-circle" data-month="Dec" data-val="64"/>
+                <circle cx="220" cy="245" r="9" class="point-halo"/>
+
+                <!-- Jan: 2 -->
+                <circle cx="292" cy="280" r="4.5" class="point-circle" data-month="Jan" data-val="40"/>
+                <circle cx="292" cy="280" r="9" class="point-halo"/>
+
+                <!-- Feb: 5 (Highlighted Point) -->
+                <circle cx="365" cy="185" r="4.5" class="point-circle active-point" data-month="Feb" data-val="150"/>
+                <circle cx="365" cy="185" r="9" class="point-halo active-halo"/>
+
+                <!-- March: 1.1 -->
+                <circle cx="437" cy="320" r="4.5" class="point-circle" data-month="March" data-val="22"/>
+                <circle cx="437" cy="320" r="9" class="point-halo"/>
+
+                <!-- April: 5.7 -->
+                <circle cx="510" cy="170" r="4.5" class="point-circle" data-month="April" data-val="114"/>
+                <circle cx="510" cy="170" r="9" class="point-halo"/>
+
+                <!-- May: 1.5 -->
+                <circle cx="582" cy="305" r="4.5" class="point-circle" data-month="May" data-val="30"/>
+                <circle cx="582" cy="305" r="9" class="point-halo"/>
+
+                <!-- June: 5.7 -->
+                <circle cx="655" cy="170" r="4.5" class="point-circle" data-month="June" data-val="114"/>
+                <circle cx="655" cy="170" r="9" class="point-halo"/>
+
+                <!-- July: 5.2 -->
+                <circle cx="727" cy="190" r="4.5" class="point-circle" data-month="July" data-val="104"/>
+                <circle cx="727" cy="190" r="9" class="point-halo"/>
+
+                <!-- Aug: 9.2 (Peak) -->
+                <circle cx="800" cy="62" r="4.5" class="point-circle" data-month="Aug" data-val="184"/>
+                <circle cx="800" cy="62" r="9" class="point-halo"/>
+
+                <!-- Sep: 4.2 -->
+                <circle cx="872" cy="215" r="4.5" class="point-circle" data-month="Sep" data-val="84"/>
+                <circle cx="872" cy="215" r="9" class="point-halo"/>
+              </g>
+
+              <!-- Floating Tooltip Card (Matching Feb Point at x=365, y=185) -->
+              <g class="chart-tooltip-group" id="chartTooltip" transform="translate(365, 185)">
+                <!-- Tooltip Card Box -->
+                <rect x="-65" y="-72" width="130" height="52" rx="8" class="tooltip-card-bg" filter="url(#cardShadow)"/>
+                <!-- Tooltip Pointer Beak -->
+                <polygon points="0,-20 -6,-14 6,-14" class="tooltip-card-beak"/>
+                <!-- Tooltip Text Content -->
+                <text x="0" y="-50" text-anchor="middle" class="tooltip-label">No. of Patients</text>
+                <text x="0" y="-30" text-anchor="middle" class="tooltip-value">150</text>
+              </g>
+
+              <!-- X-Axis Labels (Months) -->
+              <g class="x-axis-labels">
+                <text x="75" y="362" text-anchor="middle" class="axis-label x-axis-label">Oct</text>
+                <text x="147" y="362" text-anchor="middle" class="axis-label x-axis-label">Nov</text>
+                <text x="220" y="362" text-anchor="middle" class="axis-label x-axis-label">Dec</text>
+                <text x="292" y="362" text-anchor="middle" class="axis-label x-axis-label">Jan</text>
+                <text x="365" y="362" text-anchor="middle" class="axis-label x-axis-label">Feb</text>
+                <text x="437" y="362" text-anchor="middle" class="axis-label x-axis-label">March</text>
+                <text x="510" y="362" text-anchor="middle" class="axis-label x-axis-label">April</text>
+                <text x="582" y="362" text-anchor="middle" class="axis-label x-axis-label">May</text>
+                <text x="655" y="362" text-anchor="middle" class="axis-label x-axis-label">June</text>
+                <text x="727" y="362" text-anchor="middle" class="axis-label x-axis-label">July</text>
+                <text x="800" y="362" text-anchor="middle" class="axis-label x-axis-label">Aug</text>
+                <text x="872" y="362" text-anchor="middle" class="axis-label x-axis-label">Sep</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Chart Bottom Pagination / Year Switcher -->
+        <footer class="chart-card-footer">
+          <div class="year-navigator">
+            <button class="nav-arrow-btn" id="prevYearBtn" aria-label="Previous year">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 8 8 12 12 16"></polyline>
+                <line x1="16" y1="12" x2="8" y2="12"></line>
+              </svg>
+            </button>
+            <span class="legend-indicator"></span>
+            <span class="current-year" id="currentYearText">2026</span>
+            <button class="nav-arrow-btn" id="nextYearBtn" aria-label="Next year">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 16 16 12 12 8"></polyline>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </footer>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

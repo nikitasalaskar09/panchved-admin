@@ -1,0 +1,491 @@
+/* ==========================================================================
+   Panchved Admin / Client Portal - Login Page Styles
+   Design: Healthcare & Ayurveda/Physiotherapy Center Theme
+   ========================================================================== */
+
+:root {
+  /* Brand Color Palette */
+  --primary-teal: #00828A;
+  --primary-teal-hover: #006D74;
+  --primary-teal-active: #005A60;
+  --primary-teal-light: rgba(0, 130, 138, 0.08);
+  --primary-teal-focus-ring: rgba(0, 130, 138, 0.18);
+  
+  --brand-magenta: #941854;
+  --brand-blue: #0F647E;
+  --required-red: #E53E3E;
+  
+  /* Neutral Palette */
+  --bg-page: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  
+  /* Borders & Dividers */
+  --border-color: #E2E8F0;
+  --border-color-hover: #CBD5E1;
+  --border-divider: #E2E8F0;
+  --card-border: #E8EDF2;
+  
+  /* UI Metrics */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  
+  /* Shadows */
+  --card-shadow: 0 4px 25px -4px rgba(0, 0, 0, 0.04), 0 2px 10px -2px rgba(0, 0, 0, 0.02);
+  --input-focus-shadow: 0 0 0 3.5px var(--primary-teal-focus-ring);
+  
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --transition-fast: 0.18s ease;
+  --transition-normal: 0.25s ease;
+}
+
+/* Base Reset & Box Sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Main Container */
+.login-wrapper {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* ==========================================================================
+   Brand Header & Logo
+   ========================================================================== */
+.brand-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 8px;
+  user-select: none;
+}
+
+.brand-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform var(--transition-normal);
+}
+
+.brand-logo:hover {
+  transform: scale(1.03);
+}
+
+.brand-logo-img {
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   Login Card
+   ========================================================================== */
+.login-card {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 36px 36px 28px;
+  transition: box-shadow var(--transition-normal);
+}
+
+.card-title {
+  color: var(--primary-teal);
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 26px;
+  letter-spacing: -0.4px;
+}
+
+/* Form Layout */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Field Labels */
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.label-icon {
+  width: 17px;
+  height: 17px;
+  color: var(--primary-teal);
+  flex-shrink: 0;
+}
+
+.required-star {
+  color: var(--required-red);
+  margin-left: 1px;
+  font-weight: 700;
+}
+
+/* Input Containers */
+.phone-input-container,
+.password-input-container {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  height: 48px;
+  padding: 0 12px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.phone-input-container:hover,
+.password-input-container:hover {
+  border-color: var(--border-color-hover);
+}
+
+.phone-input-container.focused,
+.password-input-container.focused,
+.phone-input-container:focus-within,
+.password-input-container:focus-within {
+  border-color: var(--primary-teal);
+  box-shadow: var(--input-focus-shadow);
+}
+
+.phone-input-container.has-error,
+.password-input-container.has-error {
+  border-color: var(--required-red);
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15);
+}
+
+/* Phone Input Specifics */
+.country-code-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.country-code-picker:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.country-code-picker:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 1px;
+}
+
+.country-code-val {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.chevron-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+  stroke-width: 2.2;
+}
+
+.input-divider {
+  width: 1px;
+  height: 22px;
+  background-color: var(--border-divider);
+  margin: 0 10px;
+  flex-shrink: 0;
+}
+
+/* Common Input Field */
+.input-field {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  width: 100%;
+  padding: 0;
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.phone-field {
+  letter-spacing: 0.3px;
+}
+
+.password-field {
+  letter-spacing: 1.5px;
+}
+
+.password-field::placeholder {
+  letter-spacing: 2px;
+}
+
+/* Password Toggle Eye Button */
+.password-toggle-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  margin-right: -4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.password-toggle-btn:hover {
+  color: var(--primary-teal);
+  background-color: var(--primary-teal-light);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 1px;
+}
+
+.password-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Error Messages */
+.error-message {
+  font-size: 12px;
+  color: var(--required-red);
+  font-weight: 500;
+  min-height: 16px;
+  display: none;
+  margin-top: 2px;
+}
+
+.error-message.active {
+  display: block;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* ==========================================================================
+   Forgot Password Link
+   ========================================================================== */
+.forgot-password-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+  margin-bottom: 4px;
+}
+
+.forgot-password-link {
+  color: var(--primary-teal);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.forgot-password-link:hover {
+  color: var(--primary-teal-hover);
+  text-decoration: underline;
+}
+
+.forgot-password-link:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   Submit Button
+   ========================================================================== */
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  background-color: var(--primary-teal);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  box-shadow: 0 2px 6px rgba(0, 130, 138, 0.2);
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-teal-hover);
+  box-shadow: 0 4px 12px rgba(0, 130, 138, 0.28);
+}
+
+.submit-btn:active {
+  background-color: var(--primary-teal-active);
+  transform: scale(0.99);
+}
+
+.submit-btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Terms & Conditions Footer
+   ========================================================================== */
+.form-footer {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.terms-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.legal-link {
+  color: var(--primary-teal);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.legal-link:hover {
+  color: var(--primary-teal-hover);
+  text-decoration: underline;
+}
+
+.legal-link:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   Animations & Responsive Breakpoints
+   ========================================================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsiveness (Small screens <= 480px) */
+@media (max-width: 480px) {
+  body {
+    padding: 20px 14px;
+    align-items: flex-start;
+  }
+
+  .login-wrapper {
+    gap: 18px;
+  }
+
+  .brand-logo-img {
+    width: 100px;
+  }
+
+  .login-card {
+    padding: 26px 20px 22px;
+    border-radius: var(--radius-md);
+  }
+
+  .card-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .phone-input-container,
+  .password-input-container,
+  .submit-btn {
+    height: 46px;
+  }
+
+  .country-code-val,
+  .input-field {
+    font-size: 14px;
+  }
+
+  .terms-text {
+    font-size: 11.5px;
+  }
+}
+
+/* Medium screens (Tablet / Desktop adjustments) */
+@media (min-width: 481px) and (max-height: 700px) {
+  body {
+    padding: 16px;
+  }
+
+  .login-wrapper {
+    gap: 16px;
+  }
+
+  .login-card {
+    padding: 28px 32px 24px;
+  }
+}

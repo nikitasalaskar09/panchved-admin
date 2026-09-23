@@ -1,0 +1,774 @@
+/* ==========================================================================
+   Panchved Admin - Dashboard Styles
+   Theme: Healthcare / Ayurveda & Physiotherapy Management
+   ========================================================================== */
+
+:root {
+  /* Brand Color Palette */
+  --primary-teal: #00828A;
+  --primary-teal-hover: #006D74;
+  --primary-teal-light: rgba(0, 130, 138, 0.08);
+  --primary-teal-focus-ring: rgba(0, 130, 138, 0.18);
+  
+  --brand-magenta: #941854;
+  --brand-blue: #0F647E;
+  
+  /* Neutral Color Palette */
+  --bg-page: #FAFBFD;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  
+  /* Borders & Dividers */
+  --border-color: #E8EDF2;
+  --border-subtle: #F1F5F9;
+  --border-hover: #CBD5E1;
+  --grid-line-color: #E2E8F0;
+  
+  /* UI Metrics */
+  --sidebar-width: 250px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 50px;
+  
+  /* Shadows */
+  --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 4px rgba(0, 0, 0, 0.02);
+  --shadow-tooltip: 0 4px 16px rgba(0, 0, 0, 0.08);
+  
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --transition-fast: 0.18s ease;
+  --transition-normal: 0.25s ease;
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dashboard Overall Grid/Flex Layout */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ==========================================================================
+   Mobile Header Bar (Visible on mobile only)
+   ========================================================================== */
+.mobile-topbar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+}
+
+.menu-toggle-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-toggle-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-logo-title .brand-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--brand-magenta);
+}
+
+.user-avatar-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary-teal-light);
+  color: var(--primary-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar-sm svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 90;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Sidebar Navigation
+   ========================================================================== */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 24px 18px 24px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  z-index: 95;
+  transition: transform var(--transition-normal);
+}
+
+/* Sidebar Brand / Logo */
+.brand-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 20px;
+  user-select: none;
+}
+
+.brand-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+}
+
+.brand-logo:hover {
+  transform: scale(1.03);
+}
+
+.brand-logo-img {
+  width: 105px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Sidebar Nav Items */
+.sidebar-nav {
+  flex: 1;
+  margin-top: 8px;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-item {
+  width: 100%;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10.5px 16px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.nav-icon {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2;
+  flex-shrink: 0;
+  transition: stroke var(--transition-fast);
+}
+
+.nav-link:hover {
+  background-color: var(--primary-teal-light);
+  color: var(--primary-teal);
+}
+
+.nav-link.active {
+  background-color: var(--primary-teal);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 130, 138, 0.25);
+}
+
+.nav-link.active .nav-icon {
+  stroke: #FFFFFF;
+}
+
+/* Sidebar Footer / Log out */
+.sidebar-footer {
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--primary-teal);
+  color: var(--primary-teal);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.logout-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.logout-btn:hover {
+  background-color: var(--primary-teal);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 130, 138, 0.2);
+}
+
+/* ==========================================================================
+   Main Content Layout
+   ========================================================================== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px 36px;
+  max-width: 1440px;
+  overflow-x: hidden;
+}
+
+/* Content Header */
+.content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.header-titles .page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+
+.header-titles .welcome-text {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* User Profile Badge */
+.user-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px 5px 6px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-subtle);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.user-profile-badge:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+}
+
+.avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #B2DFDB;
+  color: #00796B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.avatar-circle svg {
+  width: 22px;
+  height: 22px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.user-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-role {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   Stats Grid
+   ========================================================================== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px 18px;
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card);
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: -0.1px;
+}
+
+.stat-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-teal);
+  stroke-width: 1.8;
+}
+
+.stat-value {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-top: 14px;
+  letter-spacing: -0.8px;
+}
+
+/* ==========================================================================
+   Chart Card ("Total Patients Onboarded")
+   ========================================================================== */
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px 20px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+/* Filter Dropdown */
+.custom-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.custom-select:hover {
+  border-color: var(--primary-teal);
+  color: var(--primary-teal);
+}
+
+.custom-select:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 1px;
+}
+
+.dropdown-chevron {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
+}
+
+/* SVG Chart */
+.chart-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+.svg-chart-wrapper {
+  min-width: 720px;
+  width: 100%;
+  position: relative;
+}
+
+.patients-svg-chart {
+  width: 100%;
+  height: 380px;
+  display: block;
+}
+
+/* SVG Grid & Axis Styles */
+.grid-line {
+  stroke: var(--grid-line-color);
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+}
+
+.axis-baseline {
+  stroke: var(--grid-line-color);
+  stroke-dasharray: none;
+  stroke-width: 1.2;
+}
+
+.axis-label {
+  font-family: var(--font-family);
+  font-size: 12.5px;
+  fill: var(--text-secondary);
+  font-weight: 500;
+  user-select: none;
+}
+
+.y-axis-label {
+  text-anchor: end;
+}
+
+.x-axis-label {
+  font-size: 12px;
+}
+
+/* Chart Curve & Points */
+.chart-stroke {
+  transition: stroke-width var(--transition-fast);
+}
+
+.point-circle {
+  fill: #FFFFFF;
+  stroke: var(--primary-teal);
+  stroke-width: 2.5;
+  cursor: pointer;
+  transition: transform var(--transition-fast), r var(--transition-fast), fill var(--transition-fast);
+}
+
+.point-halo {
+  fill: var(--primary-teal);
+  opacity: 0.18;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), r var(--transition-fast);
+}
+
+.point-circle:hover {
+  r: 6;
+  fill: var(--primary-teal);
+}
+
+.point-circle.active-point {
+  fill: var(--primary-teal);
+  stroke: #FFFFFF;
+  stroke-width: 2;
+  r: 5.5;
+}
+
+.point-halo.active-halo {
+  opacity: 0.28;
+  r: 11;
+}
+
+/* Tooltip Card in SVG */
+.chart-tooltip-group {
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity var(--transition-fast);
+}
+
+.tooltip-card-bg {
+  fill: #FFFFFF;
+  stroke: #E2E8F0;
+  stroke-width: 1;
+}
+
+.tooltip-card-beak {
+  fill: #FFFFFF;
+}
+
+.tooltip-label {
+  font-family: var(--font-family);
+  font-size: 11px;
+  fill: var(--primary-teal);
+  font-weight: 600;
+}
+
+.tooltip-value {
+  font-family: var(--font-family);
+  font-size: 16px;
+  fill: var(--text-primary);
+  font-weight: 800;
+}
+
+/* Footer / Year Navigator */
+.chart-card-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.year-navigator {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+.nav-arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: 50%;
+  padding: 4px;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.nav-arrow-btn:hover {
+  color: var(--primary-teal);
+  transform: scale(1.1);
+}
+
+.nav-arrow-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.legend-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary-teal);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.current-year {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 36px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+
+/* Large Tablets / Laptops <= 1200px */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablets <= 992px */
+@media (max-width: 992px) {
+  :root {
+    --sidebar-width: 230px;
+  }
+
+  .main-content {
+    padding: 20px 20px 28px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+}
+
+/* Mobile & Small Tablets <= 768px */
+@media (max-width: 768px) {
+  .mobile-topbar {
+    display: flex;
+  }
+
+  .dashboard-layout {
+    padding-top: 60px;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    padding: 16px 14px 24px;
+    width: 100%;
+  }
+
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .user-profile-badge {
+    align-self: flex-start;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .stat-card {
+    padding: 16px 16px 14px;
+  }
+
+  .stat-title {
+    font-size: 13px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    margin-top: 10px;
+  }
+
+  .chart-card {
+    padding: 18px 16px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .chart-title {
+    font-size: 16px;
+  }
+}
+
+/* Very Small Mobile Phones <= 480px */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

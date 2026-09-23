@@ -1,0 +1,290 @@
+/* ==========================================================================
+   Panchved Admin - Doctors Management Styles
+   ========================================================================== */
+
+/* Toolbar Add Doctor Button */
+.toolbar-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.add-doctor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 28px;
+  background-color: var(--primary-teal);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 130, 138, 0.2);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.add-doctor-btn:hover {
+  background-color: var(--primary-teal-hover);
+  box-shadow: 0 4px 12px rgba(0, 130, 138, 0.28);
+}
+
+.add-doctor-btn:active {
+  transform: scale(0.98);
+}
+
+/* Doctors Table Specifics */
+.doc-avatar {
+  background-color: #D6F1F3;
+  color: var(--primary-teal);
+}
+
+.doc-status.status-active {
+  background-color: #DCFCE7;
+  color: #15803D;
+}
+
+.doc-status.status-inactive {
+  background-color: #FEE2E2;
+  color: #DC2626;
+}
+
+/* ==========================================================================
+   Action Dropdown with Status Submenu
+   ========================================================================== */
+.doctor-dropdown {
+  min-width: 155px;
+}
+
+.dropdown-item-wrapper {
+  position: relative;
+}
+
+/* Status Submenu Popover */
+.status-submenu {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 6px);
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.1), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 110px;
+  z-index: 90;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(6px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
+}
+
+.dropdown-item-wrapper:hover .status-submenu,
+.dropdown-item-wrapper.active .status-submenu,
+.status-submenu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.status-pill-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 14px;
+  border-radius: 50px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+}
+
+.status-pill-opt.opt-active {
+  background-color: #DCFCE7;
+  color: #15803D;
+}
+
+.status-pill-opt.opt-inactive {
+  background-color: #FEE2E2;
+  color: #DC2626;
+}
+
+.status-pill-opt:hover {
+  transform: scale(1.04);
+  filter: brightness(0.96);
+}
+
+/* ==========================================================================
+   Back Navigation Row
+   ========================================================================== */
+.back-nav-row {
+  margin-top: -6px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.back-btn:hover {
+  color: var(--primary-teal);
+  transform: translateX(-3px);
+}
+
+.back-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==========================================================================
+   Add / Edit Doctor Form Card
+   ========================================================================== */
+.form-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 32px 36px 28px;
+}
+
+.doctor-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 24px;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: -0.1px;
+}
+
+.form-text-input {
+  width: 100%;
+  height: 48px;
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-text-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.form-text-input:hover {
+  border-color: var(--border-hover);
+}
+
+.form-text-input:focus {
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px var(--primary-teal-focus-ring);
+}
+
+/* Submit Row */
+.form-submit-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.submit-form-btn {
+  min-width: 140px;
+  height: 46px;
+  background-color: var(--primary-teal);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 130, 138, 0.25);
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.submit-form-btn:hover {
+  background-color: var(--primary-teal-hover);
+  box-shadow: 0 4px 14px rgba(0, 130, 138, 0.32);
+}
+
+.submit-form-btn:active {
+  transform: scale(0.99);
+}
+
+/* ==========================================================================
+   Responsive Breakpoints for Doctors Page
+   ========================================================================== */
+@media (max-width: 768px) {
+  .toolbar-section {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-actions-group {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .add-doctor-btn {
+    height: 44px;
+    padding: 0 20px;
+  }
+
+  .form-card {
+    padding: 22px 18px 20px;
+  }
+
+  .doctor-form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .submit-form-btn {
+    width: 100%;
+  }
+
+  .status-submenu {
+    right: 0;
+    top: calc(100% + 4px);
+    transform: translateY(-4px);
+  }
+
+  .dropdown-item-wrapper:hover .status-submenu,
+  .status-submenu.open {
+    transform: translateY(0);
+  }
+}

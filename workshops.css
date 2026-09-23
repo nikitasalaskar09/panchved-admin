@@ -1,0 +1,584 @@
+/* ==========================================================================
+   Panchved Admin - Workshops Management Styles
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   View Switching Animations
+   -------------------------------------------------------------------------- */
+.workshop-view-section {
+  display: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workshop-view-section.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Workshops Top Statistics Grid (Screen 1)
+   -------------------------------------------------------------------------- */
+.workshop-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* --------------------------------------------------------------------------
+   Workshops Toolbar (Search + Filter + Add)
+   -------------------------------------------------------------------------- */
+.workshops-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.workshops-toolbar .search-box-wrapper {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--radius-md, 12px);
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-color, #E2E8F0);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  transition: border-color var(--transition-fast, 0.18s ease), box-shadow var(--transition-fast, 0.18s ease);
+}
+
+.workshops-toolbar .search-box-wrapper:focus-within {
+  border-color: var(--primary-teal, #00828A);
+  box-shadow: 0 0 0 3px rgba(0, 130, 138, 0.12);
+}
+
+.workshops-toolbar .toolbar-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workshops-toolbar .filter-btn {
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.add-workshop-btn {
+  height: 48px;
+  padding: 0 28px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Workshops Table Badges & Cells
+   -------------------------------------------------------------------------- */
+.workshops-table .th-ws-name,
+.workshops-table .td-ws-name {
+  font-weight: 700;
+  color: var(--text-primary, #0F172A);
+  min-width: 220px;
+}
+
+.ws-status.status-upcoming {
+  background-color: #DCFCE7;
+  color: #16A34A;
+  font-weight: 600;
+  padding: 5px 16px;
+  border-radius: 50px;
+  font-size: 12.5px;
+}
+
+.ws-status.status-completed {
+  background-color: #E0F2FE;
+  color: #0284C7;
+  font-weight: 600;
+  padding: 5px 16px;
+  border-radius: 50px;
+  font-size: 12.5px;
+}
+
+/* --------------------------------------------------------------------------
+   Action Dropdown for Workshops (Screen 3)
+   -------------------------------------------------------------------------- */
+.ws-dropdown {
+  min-width: 145px;
+  padding: 6px 0;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+}
+
+.ws-dropdown .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #334155;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast, 0.18s ease);
+}
+
+.ws-dropdown .dropdown-item:hover {
+  background-color: #F8FAFC;
+  color: var(--primary-teal, #00828A);
+}
+
+.ws-dropdown .dropdown-item .item-icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Add / Edit Workshop Form Card (Screens 2 & 4)
+   -------------------------------------------------------------------------- */
+.workshop-form-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 16px;
+  padding: 28px 32px 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  max-width: 940px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workshop-form-card .form-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 24px;
+}
+
+.workshop-form-card .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.workshop-form-card .form-group.full-width-field {
+  margin-bottom: 0;
+}
+
+.workshop-form-card .form-control-input {
+  height: 44px;
+  border: 1.5px solid var(--border-color, #E2E8F0);
+  border-radius: 8px;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary, #0F172A);
+  background-color: #FFFFFF;
+  transition: border-color var(--transition-fast, 0.18s ease), box-shadow var(--transition-fast, 0.18s ease);
+}
+
+.workshop-form-card .form-control-textarea {
+  border: 1.5px solid var(--border-color, #E2E8F0);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary, #0F172A);
+  background-color: #FFFFFF;
+  resize: vertical;
+  min-height: 48px;
+  line-height: 1.45;
+  transition: border-color var(--transition-fast, 0.18s ease), box-shadow var(--transition-fast, 0.18s ease);
+}
+
+.workshop-form-card .form-control-input:focus,
+.workshop-form-card .form-control-textarea:focus {
+  border-color: var(--primary-teal, #00828A);
+  box-shadow: 0 0 0 3px rgba(0, 130, 138, 0.12);
+  outline: none;
+}
+
+.workshop-form-card .form-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.workshop-form-card .form-submit-btn {
+  padding: 11px 42px;
+  font-size: 14.5px;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Slide-Over Filter Drawer (Screen 5)
+   -------------------------------------------------------------------------- */
+.filter-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+
+.filter-drawer-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.filter-drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 100vw;
+  background-color: #FFFFFF;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  z-index: 1101;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-drawer-backdrop.open .filter-drawer-panel {
+  transform: translateX(0);
+}
+
+.filter-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.filter-drawer-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: -0.2px;
+}
+
+.filter-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.18s ease);
+}
+
+.filter-close-btn:hover {
+  background-color: #F1F5F9;
+  color: #0F172A;
+}
+
+.filter-drawer-body {
+  padding: 20px 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.filter-accordion-group {
+  margin-bottom: 20px;
+}
+
+.filter-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.filter-accordion-header .accordion-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #1E293B;
+  letter-spacing: 0.8px;
+}
+
+.filter-accordion-header .accordion-chevron {
+  width: 16px;
+  height: 16px;
+  color: #64748B;
+  transition: transform 0.2s ease;
+}
+
+.filter-accordion-header[aria-expanded="false"] .accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.filter-accordion-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+}
+
+.filter-accordion-content.collapsed {
+  display: none;
+}
+
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.filter-checkbox-label .custom-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.filter-checkbox-label .checkmark-box {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 4px;
+  background-color: #FFFFFF;
+  position: relative;
+  transition: all 0.18s ease;
+}
+
+.filter-checkbox-label .custom-checkbox:checked ~ .checkmark-box {
+  background-color: var(--primary-teal, #00828A);
+  border-color: var(--primary-teal, #00828A);
+}
+
+.filter-checkbox-label .custom-checkbox:checked ~ .checkmark-box::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid #FFFFFF;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.filter-drawer-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.btn-reset-filter {
+  width: 100%;
+  height: 46px;
+  background-color: var(--brand-magenta, #941854);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.18s ease);
+  box-shadow: 0 2px 8px rgba(148, 24, 84, 0.3);
+}
+
+.btn-reset-filter:hover {
+  background-color: #7D0E44;
+  box-shadow: 0 4px 12px rgba(148, 24, 84, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-reset-filter:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   MODAL: View Workshop Details Dialog (matching exact screenshot)
+   -------------------------------------------------------------------------- */
+#viewWorkshopModal .modal-card {
+  max-width: 580px;
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color, #E2E8F0);
+  position: relative;
+  overflow: hidden;
+}
+
+#viewWorkshopModal .modal-header {
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#viewWorkshopModal .modal-header-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #D6F1F3;
+  color: #0284C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#viewWorkshopModal .modal-header-icon {
+  width: 24px;
+  height: 24px;
+  stroke: #0284C7;
+  stroke-width: 2;
+}
+
+#viewWorkshopModal .modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+#viewWorkshopModal .modal-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+#viewWorkshopModal .modal-body {
+  padding: 24px 28px 28px;
+}
+
+#viewWorkshopModal .details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#viewWorkshopModal .detail-row {
+  display: flex;
+  align-items: baseline;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+#viewWorkshopModal .detail-key {
+  width: 175px;
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #0284C7;
+  letter-spacing: -0.1px;
+}
+
+#viewWorkshopModal .detail-val {
+  flex: 1;
+  font-weight: 500;
+  color: #0F172A;
+  word-break: break-word;
+}
+
+#viewWorkshopModal .detail-val.text-long {
+  color: #0F172A;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Media Queries
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .workshop-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .workshop-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .workshops-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .workshops-toolbar .toolbar-actions-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .workshops-toolbar .filter-btn,
+  .workshops-toolbar .add-workshop-btn {
+    flex: 1;
+    height: 44px;
+  }
+
+  .workshop-form-card {
+    padding: 20px 18px 24px;
+  }
+
+  .workshop-form-card .form-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .workshop-form-card .form-action-row {
+    justify-content: stretch;
+  }
+
+  .workshop-form-card .form-submit-btn {
+    width: 100%;
+  }
+
+  .filter-drawer-panel {
+    width: 100%;
+  }
+
+  #viewWorkshopModal .modal-body {
+    padding: 18px 20px 22px;
+  }
+
+  #viewWorkshopModal .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #viewWorkshopModal .detail-key {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  #viewWorkshopModal .detail-val {
+    font-size: 14px;
+  }
+}
