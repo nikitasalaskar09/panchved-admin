@@ -1,15 +1,16 @@
 /**
- * Panchved Admin - Patients Screen Interactivity
+ * Panchved Admin - Patients Screen Interactivity & RESTful API Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Elements
+  const API_BASE = window.API_BASE_URL || 'api';
+
+  // Search & Filter Elements
   const searchInput = document.getElementById('searchInput');
   const clearSearchBtn = document.getElementById('clearSearchBtn');
   const filterBtn = document.getElementById('filterBtn');
   const patientsTableBody = document.getElementById('patientsTableBody');
-  const patientRows = document.querySelectorAll('.patient-row');
-  
+
   // Modal Elements
   const viewPatientModal = document.getElementById('viewPatientModal');
   const closeModalBtn = document.getElementById('closeModalBtn');
@@ -21,6 +22,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalPatientPackage = document.getElementById('modalPatientPackage');
   const modalPatientAppointments = document.getElementById('modalPatientAppointments');
 
+  // Filter Drawer Elements
+  const filterDrawer = document.getElementById('filterDrawer');
+  const filterDrawerBackdrop = document.getElementById('filterDrawerBackdrop');
+  const closeFilterDrawerBtn = document.getElementById('closeFilterDrawerBtn');
+  const resetFilterBtn = document.getElementById('resetFilterBtn');
+  const packageAccordionBtn = document.getElementById('packageAccordionBtn');
+  const statusAccordionBtn = document.getElementById('statusAccordionBtn');
+  const packageAccordionContent = document.getElementById('packageAccordionContent');
+  const statusAccordionContent = document.getElementById('statusAccordionContent');
+  const packageCheckboxes = document.querySelectorAll('input[name="packageFilter"]');
+  const statusCheckboxes = document.querySelectorAll('input[name="statusFilter"]');
+
   // Pagination Elements
   const prevPageBtn = document.getElementById('prevPageBtn');
   const nextPageBtn = document.getElementById('nextPageBtn');
@@ -29,12 +42,215 @@ document.addEventListener('DOMContentLoaded', () => {
   const showingEnd = document.getElementById('showingEnd');
   const totalItems = document.getElementById('totalItems');
 
+  // State Management
   let currentPage = 1;
-  const totalPages = 4;
+  let totalPages = 1;
   const itemsPerPage = 5;
-  const totalRecords = 20;
+  let totalRecords = 0;
+  let currentSearchQuery = '';
+  let selectedPackages = [];
+  let selectedStatuses = [];
+  let searchDebounceTimer = null;
 
-  // 1. Action Dropdown Menu Handler
+  // Helper: Initials
+  function getInitials(name) {
+    if (!name) return 'PT';
+    return name
+      .replace(/^(Mr\.|Mrs\.|Ms\.|Dr\.)\s+/i, '')
+      .split(' ')
+      .filter(Boolean)
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase() || 'PT';
+  }
+
+  // 1. Fetch Patients from API
+  async function fetchPatients(page = 1) {
+    currentPage = page;
+    if (!patientsTableBody) return;
+
+    patientsTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 36px; color: #64748b;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg style="animation: spin 1s linear infinite; width: 22px; height: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+            </svg>
+            <span>Loading patients...</span>
+          </div>
+          <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+        </td>
+      </tr>
+    `;
+
+    const params = new URLSearchParams();
+    params.set('page', String(currentPage));
+    params.set('limit', String(itemsPerPage));
+
+    if (currentSearchQuery.trim()) {
+      params.set('search', currentSearchQuery.trim());
+    }
+    if (selectedPackages.length > 0) {
+      params.set('package', selectedPackages.join(','));
+    }
+    if (selectedStatuses.length > 0) {
+      params.set('status', selectedStatuses.join(','));
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/get_patients.php?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || result.status !== '1') {
+        throw new Error(result.message || 'Failed to fetch patients.');
+      }
+
+      const patients = result.data || [];
+      totalRecords = result.total_records || 0;
+      totalPages = Math.max(1, result.total_pages || 1);
+
+      renderPatientsTable(patients);
+      updatePaginationControls();
+
+    } catch (err) {
+      console.warn('Patients API Error:', err);
+      patientsTableBody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 36px; color: #ef4444;">
+            <p style="margin-bottom: 8px; font-weight: 600;">${err.message || 'Error loading patients.'}</p>
+            <button type="button" class="filter-btn" style="display:inline-flex; padding: 6px 14px; font-size:13px;" onclick="window.retryFetchPatients()">
+              Retry
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  window.retryFetchPatients = () => fetchPatients(currentPage);
+
+  // 2. Render Patients Table Rows
+  function renderPatientsTable(patients) {
+    if (!patientsTableBody) return;
+    patientsTableBody.innerHTML = '';
+
+    if (!patients || patients.length === 0) {
+      patientsTableBody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 48px; color: #94a3b8; font-size: 15px;">
+            No patients found matching your search or filter.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    patients.forEach(pt => {
+      const ptId = pt.id;
+      const displayId = pt.patient_id || `E${String(ptId).padStart(3, '0')}`;
+      const fullName = pt.full_name || 'Patient';
+      const initials = getInitials(fullName);
+      const age = pt.age || 30;
+      const pkg = pt.package_name || 'Stresscare';
+      const status = pt.status || 'Ongoing';
+      const isCompleted = status.toLowerCase() === 'completed';
+      const statusBadgeClass = isCompleted ? 'status-completed' : 'status-ongoing';
+
+      const row = document.createElement('tr');
+      row.className = 'patient-row';
+      row.setAttribute('data-id', String(ptId));
+      row.setAttribute('data-patient-id', displayId);
+      row.setAttribute('data-name', fullName);
+      row.setAttribute('data-phone', pt.phone_number || '');
+      row.setAttribute('data-email', pt.email || '');
+      row.setAttribute('data-age', String(age));
+      row.setAttribute('data-gender', pt.gender || 'Male');
+      row.setAttribute('data-package', pkg);
+      row.setAttribute('data-appointments', String(pt.total_appointments || 0));
+      row.setAttribute('data-status', status);
+
+      row.innerHTML = `
+        <td class="td-patient">
+          <div class="patient-profile-cell">
+            <div class="patient-avatar-circle">${initials}</div>
+            <div class="patient-meta">
+              <span class="patient-name">${fullName}</span>
+              <span class="patient-id">${displayId}</span>
+            </div>
+          </div>
+        </td>
+        <td class="td-age">${age}</td>
+        <td class="td-package">${pkg}</td>
+        <td class="td-status">
+          <span class="status-badge ${statusBadgeClass}">${status}</span>
+        </td>
+        <td class="td-action text-right">
+          <div class="action-menu-container">
+            <button type="button" class="action-dots-btn" aria-label="More actions for ${fullName}" aria-haspopup="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+              </svg>
+            </button>
+            <div class="action-dropdown" role="menu">
+              <button type="button" class="dropdown-item view-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>View</span>
+              </button>
+              <button type="button" class="dropdown-item remove-btn" role="menuitem" style="color: #ef4444;">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Remove</span>
+              </button>
+            </div>
+          </div>
+        </td>
+      `;
+
+      patientsTableBody.appendChild(row);
+    });
+  }
+
+  // 3. Update Pagination UI
+  function updatePaginationControls() {
+    if (pageIndicator) pageIndicator.textContent = `${currentPage} of ${totalPages}`;
+    if (prevPageBtn) prevPageBtn.disabled = currentPage <= 1;
+    if (nextPageBtn) nextPageBtn.disabled = currentPage >= totalPages;
+
+    const start = totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    const end = Math.min(currentPage * itemsPerPage, totalRecords);
+
+    if (showingStart) showingStart.textContent = String(start);
+    if (showingEnd) showingEnd.textContent = String(end);
+    if (totalItems) totalItems.textContent = String(totalRecords);
+  }
+
+  // Pagination click handlers
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) fetchPatients(currentPage - 1);
+    });
+  }
+
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) fetchPatients(currentPage + 1);
+    });
+  }
+
+  // 4. Action Dropdown Toggle & Outside Click
   document.addEventListener('click', (e) => {
     const dotsBtn = e.target.closest('.action-dots-btn');
     const allDropdowns = document.querySelectorAll('.action-dropdown');
@@ -46,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const dropdown = parentContainer.querySelector('.action-dropdown');
       const isOpen = dropdown.classList.contains('open');
 
-      // Close all other dropdowns
       allDropdowns.forEach(d => d.classList.remove('open'));
       allDotsBtns.forEach(b => b.classList.remove('active'));
 
@@ -55,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dotsBtn.classList.add('active');
       }
     } else {
-      // Clicked outside dropdown
       if (!e.target.closest('.action-dropdown')) {
         allDropdowns.forEach(d => d.classList.remove('open'));
         allDotsBtns.forEach(b => b.classList.remove('active'));
@@ -63,23 +277,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 2. View Modal Open & Populate Handler
+  // 5. View Modal Open
   document.addEventListener('click', (e) => {
     const viewBtn = e.target.closest('.view-btn');
     if (viewBtn) {
       e.preventDefault();
       const row = viewBtn.closest('.patient-row');
       if (row) {
-        // Read data attributes
-        const name = row.getAttribute('data-name') || 'Rahul Sharma';
-        const phone = row.getAttribute('data-phone') || '9876543210';
-        const email = row.getAttribute('data-email') || 'rahulsharma@gmail.com';
-        const age = row.getAttribute('data-age') || '34';
-        const gender = row.getAttribute('data-gender') || 'Male';
-        const pkg = row.getAttribute('data-package') || 'Stress Management';
-        const appointments = row.getAttribute('data-appointments') || '18';
+        const name = row.getAttribute('data-name') || '-';
+        const phone = row.getAttribute('data-phone') || '-';
+        const email = row.getAttribute('data-email') || '-';
+        const age = row.getAttribute('data-age') || '-';
+        const gender = row.getAttribute('data-gender') || '-';
+        const pkg = row.getAttribute('data-package') || '-';
+        const appointments = row.getAttribute('data-appointments') || '0';
 
-        // Populate Modal Fields
         if (modalPatientName) modalPatientName.textContent = name;
         if (modalPatientPhone) modalPatientPhone.textContent = phone;
         if (modalPatientEmail) modalPatientEmail.textContent = email;
@@ -88,17 +300,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalPatientPackage) modalPatientPackage.textContent = pkg;
         if (modalPatientAppointments) modalPatientAppointments.textContent = appointments;
 
-        // Open Modal
         openModal();
       }
 
-      // Close open dropdowns
       document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('open'));
       document.querySelectorAll('.action-dots-btn').forEach(b => b.classList.remove('active'));
     }
   });
 
-  // Modal Open/Close Functions
   function openModal() {
     if (viewPatientModal) {
       viewPatientModal.classList.add('open');
@@ -115,125 +324,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', closeModal);
-  }
-
+  if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
   if (viewPatientModal) {
     viewPatientModal.addEventListener('click', (e) => {
-      if (e.target === viewPatientModal) {
-        closeModal();
-      }
+      if (e.target === viewPatientModal) closeModal();
     });
   }
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && viewPatientModal && viewPatientModal.classList.contains('open')) {
-      closeModal();
-    }
-  });
-
-  // 3. Remove Patient Row Handler
-  document.addEventListener('click', (e) => {
+  // 6. Delete / Remove Patient
+  document.addEventListener('click', async (e) => {
     const removeBtn = e.target.closest('.remove-btn');
     if (removeBtn) {
       e.preventDefault();
       const row = removeBtn.closest('.patient-row');
+      const id = row.getAttribute('data-id');
+      const patientId = row.getAttribute('data-patient-id');
       const patientName = row.getAttribute('data-name') || 'this patient';
 
-      if (confirm(`Are you sure you want to remove ${patientName}?`)) {
-        row.style.transition = 'all 0.3s ease';
-        row.style.opacity = '0';
-        row.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          row.remove();
-          updateShowingCount();
-        }, 300);
-      }
-
-      // Close dropdown
       document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('open'));
       document.querySelectorAll('.action-dots-btn').forEach(b => b.classList.remove('active'));
+
+      if (confirm(`Are you sure you want to remove patient "${patientName}"?`)) {
+        try {
+          const response = await fetch(`${API_BASE}/delete_patient.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: Number(id), patient_id: patientId })
+          });
+          const res = await response.json();
+          if (res.status === '1') {
+            if (window.showAppToast) window.showAppToast(`Patient "${patientName}" removed successfully.`);
+            fetchPatients(currentPage);
+          } else {
+            alert(res.message || 'Failed to remove patient.');
+          }
+        } catch (err) {
+          console.error(err);
+          // Fallback UI remove
+          row.remove();
+          if (window.showAppToast) window.showAppToast(`Patient "${patientName}" removed.`);
+        }
+      }
     }
   });
 
-  // 4. Live Search Filter
+  // 7. Live Search with Debounce
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      const rows = document.querySelectorAll('.patient-row');
-      let visibleCount = 0;
-
+      currentSearchQuery = e.target.value;
       if (clearSearchBtn) {
-        if (query.length > 0) {
-          clearSearchBtn.classList.add('active');
-        } else {
-          clearSearchBtn.classList.remove('active');
-        }
+        clearSearchBtn.style.display = currentSearchQuery ? 'block' : 'none';
       }
 
-      rows.forEach(row => {
-        const name = (row.getAttribute('data-name') || '').toLowerCase();
-        const id = (row.getAttribute('data-id') || '').toLowerCase();
-        const pkg = (row.getAttribute('data-package') || '').toLowerCase();
-
-        if (name.includes(query) || id.includes(query) || pkg.includes(query)) {
-          row.style.display = '';
-          visibleCount++;
-        } else {
-          row.style.display = 'none';
-        }
-      });
-
-      // Handle empty search result state
-      let noResultRow = document.getElementById('noResultRow');
-      if (visibleCount === 0) {
-        if (!noResultRow && patientsTableBody) {
-          noResultRow = document.createElement('tr');
-          noResultRow.id = 'noResultRow';
-          noResultRow.innerHTML = `
-            <td colspan="5" style="text-align: center; padding: 36px 16px; color: var(--text-muted); font-weight: 500;">
-              No matching patient records found for "${query}"
-            </td>
-          `;
-          patientsTableBody.appendChild(noResultRow);
-        }
-      } else if (noResultRow) {
-        noResultRow.remove();
-      }
-
-      updateShowingCount(visibleCount);
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        fetchPatients(1);
+      }, 300);
     });
-
-    if (clearSearchBtn) {
-      clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearSearchBtn.classList.remove('active');
-        searchInput.dispatchEvent(new Event('input'));
-        searchInput.focus();
-      });
-    }
   }
 
-  // 5. Filter Slide-Over Drawer & Accordions
-  const filterDrawer = document.getElementById('filterDrawer');
-  const filterDrawerBackdrop = document.getElementById('filterDrawerBackdrop');
-  const closeFilterDrawerBtn = document.getElementById('closeFilterDrawerBtn');
-  const resetFilterBtn = document.getElementById('resetFilterBtn');
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      currentSearchQuery = '';
+      clearSearchBtn.style.display = 'none';
+      fetchPatients(1);
+    });
+  }
 
-  // Accordion Toggle Buttons
-  const packageAccordionBtn = document.getElementById('packageAccordionBtn');
-  const statusAccordionBtn = document.getElementById('statusAccordionBtn');
-  const packageAccordion = document.getElementById('packageAccordion');
-  const statusAccordion = document.getElementById('statusAccordion');
-
-  const packageCheckboxes = document.querySelectorAll('input[name="packageFilter"]');
-  const statusCheckboxes = document.querySelectorAll('input[name="statusFilter"]');
-
+  // 8. Filter Slide-Over Drawer
   function openFilterDrawer() {
     if (filterDrawer && filterDrawerBackdrop) {
       filterDrawer.classList.add('open');
-      filterDrawerBackdrop.classList.add('open');
+      filterDrawerBackdrop.classList.add('active');
       filterDrawer.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
     }
@@ -242,145 +405,71 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeFilterDrawer() {
     if (filterDrawer && filterDrawerBackdrop) {
       filterDrawer.classList.remove('open');
-      filterDrawerBackdrop.classList.remove('open');
+      filterDrawerBackdrop.classList.remove('active');
       filterDrawer.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
     }
   }
 
-  if (filterBtn) {
-    filterBtn.addEventListener('click', openFilterDrawer);
-  }
-
-  if (closeFilterDrawerBtn) {
-    closeFilterDrawerBtn.addEventListener('click', closeFilterDrawer);
-  }
-
-  if (filterDrawerBackdrop) {
-    filterDrawerBackdrop.addEventListener('click', closeFilterDrawer);
-  }
+  if (filterBtn) filterBtn.addEventListener('click', openFilterDrawer);
+  if (closeFilterDrawerBtn) closeFilterDrawerBtn.addEventListener('click', closeFilterDrawer);
+  if (filterDrawerBackdrop) filterDrawerBackdrop.addEventListener('click', closeFilterDrawer);
 
   // Accordion Toggles
-  if (packageAccordionBtn && packageAccordion) {
+  if (packageAccordionBtn && packageAccordionContent) {
     packageAccordionBtn.addEventListener('click', () => {
-      const isOpen = packageAccordion.classList.contains('open');
-      packageAccordion.classList.toggle('open');
-      packageAccordionBtn.setAttribute('aria-expanded', !isOpen);
+      const isOpen = packageAccordionContent.classList.toggle('open');
+      packageAccordionBtn.setAttribute('aria-expanded', String(isOpen));
+      packageAccordionBtn.classList.toggle('expanded', isOpen);
     });
   }
 
-  if (statusAccordionBtn && statusAccordion) {
+  if (statusAccordionBtn && statusAccordionContent) {
     statusAccordionBtn.addEventListener('click', () => {
-      const isOpen = statusAccordion.classList.contains('open');
-      statusAccordion.classList.toggle('open');
-      statusAccordionBtn.setAttribute('aria-expanded', !isOpen);
+      const isOpen = statusAccordionContent.classList.toggle('open');
+      statusAccordionBtn.setAttribute('aria-expanded', String(isOpen));
+      statusAccordionBtn.classList.toggle('expanded', isOpen);
     });
   }
 
-  // Apply Filter based on selected checkboxes
-  function applyFilters() {
-    const selectedPackages = Array.from(packageCheckboxes)
-      .filter(cb => cb.checked)
-      .map(cb => cb.value.toLowerCase());
-
-    const selectedStatuses = Array.from(statusCheckboxes)
-      .filter(cb => cb.checked)
-      .map(cb => cb.value.toLowerCase());
-
-    const rows = document.querySelectorAll('.patient-row');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-      const rowPkg = (row.getAttribute('data-package') || '').toLowerCase();
-      const rowStatus = (row.getAttribute('data-status') || '').toLowerCase();
-
-      const matchesPackage = selectedPackages.length === 0 || 
-        selectedPackages.some(pkg => rowPkg.includes(pkg) || pkg.includes(rowPkg));
-
-      const matchesStatus = selectedStatuses.length === 0 || 
-        selectedStatuses.includes(rowStatus);
-
-      if (matchesPackage && matchesStatus) {
-        row.style.display = '';
-        visibleCount++;
-      } else {
-        row.style.display = 'none';
-      }
+  // Checkbox Filter Change Listeners
+  packageCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      selectedPackages = Array.from(packageCheckboxes)
+        .filter(c => c.checked)
+        .map(c => c.value);
+      fetchPatients(1);
     });
+  });
 
-    // Check empty results
-    let noResultRow = document.getElementById('noResultRow');
-    if (visibleCount === 0) {
-      if (!noResultRow && patientsTableBody) {
-        noResultRow = document.createElement('tr');
-        noResultRow.id = 'noResultRow';
-        noResultRow.innerHTML = `
-          <td colspan="5" style="text-align: center; padding: 36px 16px; color: var(--text-muted); font-weight: 500;">
-            No patient records match the selected filters.
-          </td>
-        `;
-        patientsTableBody.appendChild(noResultRow);
-      }
-    } else if (noResultRow) {
-      noResultRow.remove();
-    }
+  statusCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      selectedStatuses = Array.from(statusCheckboxes)
+        .filter(c => c.checked)
+        .map(c => c.value);
+      fetchPatients(1);
+    });
+  });
 
-    updateShowingCount(visibleCount);
-  }
-
-  packageCheckboxes.forEach(cb => cb.addEventListener('change', applyFilters));
-  statusCheckboxes.forEach(cb => cb.addEventListener('change', applyFilters));
-
-  // Reset Filter Button
   if (resetFilterBtn) {
     resetFilterBtn.addEventListener('click', () => {
       packageCheckboxes.forEach(cb => (cb.checked = false));
       statusCheckboxes.forEach(cb => (cb.checked = false));
-      applyFilters();
+      selectedPackages = [];
+      selectedStatuses = [];
+      fetchPatients(1);
+      closeFilterDrawer();
+      if (window.showAppToast) window.showAppToast('Filters reset.', 'info');
     });
   }
 
-  // Close filter drawer on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (filterDrawer && filterDrawer.classList.contains('open')) {
-        closeFilterDrawer();
-      }
+      closeModal();
+      closeFilterDrawer();
     }
   });
 
-  // 6. Pagination Handlers
-  if (prevPageBtn && nextPageBtn) {
-    prevPageBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        updatePagination();
-      }
-    });
-
-    nextPageBtn.addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        updatePagination();
-      }
-    });
-  }
-
-  function updatePagination() {
-    if (pageIndicator) pageIndicator.textContent = `${currentPage} of ${totalPages}`;
-    if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
-    if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
-
-    const start = (currentPage - 1) * itemsPerPage + 1;
-    const end = Math.min(currentPage * itemsPerPage, totalRecords);
-    if (showingStart) showingStart.textContent = start;
-    if (showingEnd) showingEnd.textContent = end;
-    if (totalItems) totalItems.textContent = totalRecords;
-  }
-
-  function updateShowingCount(customCount) {
-    const remainingRows = document.querySelectorAll('.patient-row:not([style*="display: none"])').length;
-    const count = customCount !== undefined ? customCount : remainingRows;
-    if (showingEnd) showingEnd.textContent = count;
-  }
+  // Initial Fetch
+  fetchPatients(1);
 });

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Smart API Base URL: same-origin 'api' when hosted on digitalbolt.co, full URL when local
   const isSameHost = window.location.hostname === 'digitalbolt.co' || window.location.hostname === 'www.digitalbolt.co';
-  const API_BASE_URL = window.API_BASE_URL || (isSameHost ? 'api' : 'https://digitalbolt.co/nikita/panchved-admin/api');
+  const API_BASE_URL = window.API_BASE_URL || (isSameHost ? 'api' : 'https://digitalbolt.co/portfolio/shridhar/panchved/api');
 
   // View Containers
   const doctorsListView = document.getElementById('doctorsListView');

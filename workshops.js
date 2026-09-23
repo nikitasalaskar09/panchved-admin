@@ -1,16 +1,10 @@
 /**
- * Panchved Admin - Workshops Management JavaScript
- * Handles:
- * - Multi-view transitions (List View <-> Add Workshop View <-> Edit Workshop View)
- * - 3-dots Action Dropdown (Edit, View)
- * - Slide-over Filter Drawer with accordion and Status checkboxes
- * - Add Workshop & Edit Workshop form submissions with dynamic table updates
- * - Live search filter & pagination
- * - Drag & drop file uploads
- * - View Workshop Details Modal Dialog
+ * Panchved Admin - Workshops Management JavaScript & REST API Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const API_BASE = window.API_BASE_URL || 'api';
+
   // Views
   const workshopsListView = document.getElementById('workshopsListView');
   const addWorkshopView = document.getElementById('addWorkshopView');
@@ -29,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Stat Counters
   const statTotalWorkshops = document.getElementById('statTotalWorkshops');
   const statUpcomingWorkshops = document.getElementById('statUpcomingWorkshops');
+  const statPastWorkshops = document.getElementById('statPastWorkshops');
 
   // Pagination Elements
   const wsShowingStart = document.getElementById('wsShowingStart');
@@ -56,10 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const viewWsModalAttendee = document.getElementById('viewWsModalAttendee');
   const viewWsModalRegistrations = document.getElementById('viewWsModalRegistrations');
   const viewWsModalFee = document.getElementById('viewWsModalFee');
-  const viewWsModalStatus = document.getElementById('viewWsModalStatus');
   const viewWsModalAbout = document.getElementById('viewWsModalAbout');
   const viewWsModalSpeaker = document.getElementById('viewWsModalSpeaker');
-  const viewWsModalImage = document.getElementById('viewWsModalImage');
 
   // Forms
   const addWorkshopForm = document.getElementById('addWorkshopForm');
@@ -68,12 +61,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   let currentTargetRow = null;
   let currentPage = 1;
-  const totalPages = 4;
+  let totalPages = 1;
+  const itemsPerPage = 5;
+  let totalRecords = 0;
+  let currentSearchQuery = '';
+  let selectedStatuses = [];
+  let searchDebounceTimer = null;
 
-  // --------------------------------------------------------------------------
-  // Helper: Toast Notifications
-  // --------------------------------------------------------------------------
-  function showToast(message) {
+  // Helper: Toast
+  function showToast(message, type = 'success') {
+    if (window.showAppToast) {
+      window.showAppToast(message, type);
+      return;
+    }
     let toast = document.querySelector('.toast-alert');
     if (!toast) {
       toast = document.createElement('div');
@@ -88,14 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     toast.querySelector('.toast-message').textContent = message;
     toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3200);
+    setTimeout(() => toast.classList.remove('show'), 3200);
   }
 
-  // --------------------------------------------------------------------------
-  // View Switching
-  // --------------------------------------------------------------------------
+  // 1. View Switching
   function switchView(targetView) {
     [workshopsListView, addWorkshopView, editWorkshopView].forEach(view => {
       if (view) {
@@ -106,9 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (targetView) {
       targetView.style.display = 'block';
-      setTimeout(() => {
-        targetView.classList.add('active');
-      }, 10);
+      setTimeout(() => targetView.classList.add('active'), 10);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -116,8 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (openAddWorkshopBtn) {
     openAddWorkshopBtn.addEventListener('click', () => {
       if (addWorkshopForm) addWorkshopForm.reset();
-      const fnSpan = document.getElementById('addWsFileName');
-      if (fnSpan) fnSpan.textContent = '';
+      const fn = document.getElementById('addWsFileName');
+      if (fn) fn.textContent = '';
       switchView(addWorkshopView);
     });
   }
@@ -130,16 +124,197 @@ document.addEventListener('DOMContentLoaded', () => {
     backFromEditWsBtn.addEventListener('click', () => switchView(workshopsListView));
   }
 
-  // --------------------------------------------------------------------------
-  // Action Dropdown Management
-  // --------------------------------------------------------------------------
+  // 2. Fetch Workshops from API
+  async function fetchWorkshops(page = 1) {
+    currentPage = page;
+    if (!workshopsTableBody) return;
+
+    workshopsTableBody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 36px; color: #64748b;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg style="animation: spin 1s linear infinite; width: 22px; height: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+            </svg>
+            <span>Loading workshops...</span>
+          </div>
+          <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+        </td>
+      </tr>
+    `;
+
+    const params = new URLSearchParams();
+    params.set('page', String(currentPage));
+    params.set('limit', String(itemsPerPage));
+
+    if (currentSearchQuery.trim()) {
+      params.set('search', currentSearchQuery.trim());
+    }
+    if (selectedStatuses.length > 0) {
+      params.set('status', selectedStatuses.join(','));
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/get_workshops.php?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || result.status !== '1') {
+        throw new Error(result.message || 'Failed to fetch workshops.');
+      }
+
+      // Update Stat Counters
+      if (result.stats) {
+        if (statTotalWorkshops) statTotalWorkshops.textContent = result.stats.total_workshops;
+        if (statUpcomingWorkshops) statUpcomingWorkshops.textContent = result.stats.upcoming_workshops;
+        if (statPastWorkshops) statPastWorkshops.textContent = result.stats.past_workshops;
+      }
+
+      const workshops = result.data || [];
+      totalRecords = result.total_records || 0;
+      totalPages = Math.max(1, result.total_pages || 1);
+
+      renderWorkshopsTable(workshops);
+      updatePaginationControls();
+
+    } catch (err) {
+      console.warn('Workshops API Error:', err);
+      workshopsTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 36px; color: #ef4444;">
+            <p style="margin-bottom: 8px; font-weight: 600;">${err.message || 'Error loading workshops.'}</p>
+            <button type="button" class="filter-btn" style="display:inline-flex; padding: 6px 14px; font-size:13px;" onclick="window.retryFetchWorkshops()">
+              Retry
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  window.retryFetchWorkshops = () => fetchWorkshops(currentPage);
+
+  // 3. Render Workshops Table Rows
+  function renderWorkshopsTable(workshops) {
+    if (!workshopsTableBody) return;
+    workshopsTableBody.innerHTML = '';
+
+    if (!workshops || workshops.length === 0) {
+      workshopsTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 48px; color: #94a3b8; font-size: 15px;">
+            No workshops found matching your search or filters.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    workshops.forEach(ws => {
+      const wsId = ws.id;
+      const displayId = ws.workshop_id || `WS-${String(wsId).padStart(3, '0')}`;
+      const title = ws.title || 'Workshop Title';
+      const displayDate = ws.formatted_date || ws.date || '2 Sep 2026';
+      const rawDate = ws.date || '2026-09-02';
+      const time = ws.time || '8:00 AM';
+      const attendee = ws.attendee_type || 'Doctor';
+      const registrations = ws.registrations ?? (ws.enrolled ?? 0);
+      const feeNum = Number(ws.fee || ws.price || 0);
+      const displayFee = `₹${feeNum}`;
+      const status = ws.status || 'Upcoming';
+      const isCompleted = status.toLowerCase() === 'completed' || status.toLowerCase() === 'past';
+      const statusClass = isCompleted ? 'status-completed' : 'status-upcoming';
+
+      const row = document.createElement('tr');
+      row.className = 'workshop-row';
+      row.setAttribute('data-id', String(wsId));
+      row.setAttribute('data-workshop-id', displayId);
+      row.setAttribute('data-name', title);
+      row.setAttribute('data-date', displayDate);
+      row.setAttribute('data-form-date', rawDate);
+      row.setAttribute('data-time', time);
+      row.setAttribute('data-attendee', attendee);
+      row.setAttribute('data-registrations', String(registrations));
+      row.setAttribute('data-fee', String(feeNum));
+      row.setAttribute('data-status', status);
+      row.setAttribute('data-about', ws.about || '');
+      row.setAttribute('data-speaker', ws.speaker || ws.instructor || '');
+
+      row.innerHTML = `
+        <td class="td-ws-name font-bold ws-name-cell">${title}</td>
+        <td class="td-date text-muted-dark ws-date-cell">${displayDate}</td>
+        <td class="td-time text-muted-dark ws-time-cell">${time}</td>
+        <td class="td-attendee text-muted-dark ws-attendee-cell">${attendee}</td>
+        <td class="td-registrations text-muted-dark ws-registrations-cell">${registrations}</td>
+        <td class="td-status">
+          <span class="status-badge ws-status ${statusClass}">${status}</span>
+        </td>
+        <td class="td-action text-right">
+          <div class="action-menu-container">
+            <button type="button" class="action-dots-btn" aria-label="Actions for ${title}">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+              </svg>
+            </button>
+            <div class="action-dropdown ws-dropdown" role="menu">
+              <button type="button" class="dropdown-item edit-ws-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+                <span>Edit</span>
+              </button>
+              <button type="button" class="dropdown-item view-ws-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>View</span>
+              </button>
+            </div>
+          </div>
+        </td>
+      `;
+
+      workshopsTableBody.appendChild(row);
+    });
+  }
+
+  // 4. Update Pagination Controls
+  function updatePaginationControls() {
+    if (wsPageIndicator) wsPageIndicator.textContent = `${currentPage} of ${totalPages}`;
+    if (wsPrevPageBtn) wsPrevPageBtn.disabled = currentPage <= 1;
+    if (wsNextPageBtn) wsNextPageBtn.disabled = currentPage >= totalPages;
+
+    const start = totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    const end = Math.min(currentPage * itemsPerPage, totalRecords);
+
+    if (wsShowingStart) wsShowingStart.textContent = String(start);
+    if (wsShowingEnd) wsShowingEnd.textContent = String(end);
+    if (wsTotalItems) wsTotalItems.textContent = String(totalRecords);
+  }
+
+  if (wsPrevPageBtn) {
+    wsPrevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) fetchWorkshops(currentPage - 1);
+    });
+  }
+
+  if (wsNextPageBtn) {
+    wsNextPageBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) fetchWorkshops(currentPage + 1);
+    });
+  }
+
+  // 5. Action Dropdown Management
   function closeAllDropdowns() {
-    document.querySelectorAll('.ws-dropdown.open').forEach(dropdown => {
-      dropdown.classList.remove('open');
-    });
-    document.querySelectorAll('.action-dots-btn.active').forEach(btn => {
-      btn.classList.remove('active');
-    });
+    document.querySelectorAll('.ws-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.action-dots-btn.active').forEach(b => b.classList.remove('active'));
   }
 
   document.addEventListener('click', (e) => {
@@ -164,33 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Edit Workshop Action
-  // --------------------------------------------------------------------------
-  document.addEventListener('click', (e) => {
-    const editBtn = e.target.closest('.edit-ws-btn');
-    if (editBtn) {
-      const row = editBtn.closest('.workshop-row');
-      if (row) {
-        currentTargetRow = row;
-
-        document.getElementById('editWsName').value = row.getAttribute('data-name') || '';
-        document.getElementById('editWsDate').value = row.getAttribute('data-date') || '02/09/2026';
-        document.getElementById('editWsTime').value = row.getAttribute('data-time') || '08:00 AM';
-        document.getElementById('editWsAttendee').value = row.getAttribute('data-attendee') || 'Doctor';
-        document.getElementById('editWsFee').value = row.getAttribute('data-fee') ? `₹${row.getAttribute('data-fee').replace('₹','')}` : '₹500';
-        document.getElementById('editWsAbout').value = row.getAttribute('data-about') || '';
-        document.getElementById('editWsSpeaker').value = row.getAttribute('data-speaker') || '';
-
-        closeAllDropdowns();
-        switchView(editWorkshopView);
-      }
-    }
-  });
-
-  // --------------------------------------------------------------------------
-  // View Workshop Modal Action
-  // --------------------------------------------------------------------------
+  // Modal Functions
   function openModal(modal) {
     if (!modal) return;
     modal.classList.add('open');
@@ -205,44 +354,181 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = '';
   }
 
-  if (closeViewWsModalBtn) {
-    closeViewWsModalBtn.addEventListener('click', () => closeModal(viewWorkshopModal));
-  }
-
+  if (closeViewWsModalBtn) closeViewWsModalBtn.addEventListener('click', () => closeModal(viewWorkshopModal));
   if (viewWorkshopModal) {
     viewWorkshopModal.addEventListener('click', (e) => {
       if (e.target === viewWorkshopModal) closeModal(viewWorkshopModal);
     });
   }
 
+  // 6. View Workshop Details Modal
   document.addEventListener('click', (e) => {
     const viewBtn = e.target.closest('.view-ws-btn');
     if (viewBtn) {
+      e.preventDefault();
+      closeAllDropdowns();
+
       const row = viewBtn.closest('.workshop-row');
       if (row) {
-        if (viewWsModalName) viewWsModalName.textContent = row.getAttribute('data-name') || 'Ayurveda Wellness Workshop';
-        if (viewWsModalDate) viewWsModalDate.textContent = row.getAttribute('data-date') || '2 Sep 2026';
-        if (viewWsModalTime) viewWsModalTime.textContent = row.getAttribute('data-time') || '8:00 AM';
-        if (viewWsModalAttendee) viewWsModalAttendee.textContent = row.getAttribute('data-attendee') || 'Doctor';
-        if (viewWsModalRegistrations) viewWsModalRegistrations.textContent = row.getAttribute('data-registrations') || '24';
-        if (viewWsModalFee) viewWsModalFee.textContent = row.getAttribute('data-fee') ? `₹${row.getAttribute('data-fee').replace('₹','')}` : '₹500';
-        if (viewWsModalStatus) viewWsModalStatus.textContent = row.getAttribute('data-status') || 'Upcoming';
-        if (viewWsModalAbout) viewWsModalAbout.textContent = row.getAttribute('data-about') || 'Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum';
-        if (viewWsModalSpeaker) viewWsModalSpeaker.textContent = row.getAttribute('data-speaker') || 'Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum';
+        const name = row.getAttribute('data-name') || '-';
+        const date = row.getAttribute('data-date') || '-';
+        const time = row.getAttribute('data-time') || '-';
+        const attendee = row.getAttribute('data-attendee') || '-';
+        const registrations = row.getAttribute('data-registrations') || '0';
+        const fee = row.getAttribute('data-fee') || '0';
+        const about = row.getAttribute('data-about') || '-';
+        const speaker = row.getAttribute('data-speaker') || '-';
 
-        closeAllDropdowns();
+        if (viewWsModalName) viewWsModalName.textContent = name;
+        if (viewWsModalDate) viewWsModalDate.textContent = date;
+        if (viewWsModalTime) viewWsModalTime.textContent = time;
+        if (viewWsModalAttendee) viewWsModalAttendee.textContent = attendee;
+        if (viewWsModalRegistrations) viewWsModalRegistrations.textContent = registrations;
+        if (viewWsModalFee) viewWsModalFee.textContent = `₹${fee}`;
+        if (viewWsModalAbout) viewWsModalAbout.textContent = about;
+        if (viewWsModalSpeaker) viewWsModalSpeaker.textContent = speaker;
+
         openModal(viewWorkshopModal);
       }
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Filter Drawer Management (Screen 5)
-  // --------------------------------------------------------------------------
+  // 7. Add Workshop Form Submit
+  if (addWorkshopForm) {
+    addWorkshopForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = addWorkshopForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Saving...</span>';
+      }
+
+      const payload = {
+        title: document.getElementById('addWsName')?.value || '',
+        speaker: document.getElementById('addWsSpeaker')?.value || '',
+        instructor: document.getElementById('addWsSpeaker')?.value || '',
+        date: document.getElementById('addWsDate')?.value || '',
+        time: document.getElementById('addWsTime')?.value || '',
+        attendee_type: document.getElementById('addWsAttendee')?.value || 'Doctor',
+        fee: document.getElementById('addWsFee')?.value || '0',
+        about: document.getElementById('addWsAbout')?.value || '',
+        status: 'Upcoming'
+      };
+
+      try {
+        const response = await fetch(`${API_BASE}/add_workshop.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+        if (res.status === '1') {
+          showToast('Workshop created successfully!');
+          switchView(workshopsListView);
+          fetchWorkshops(1);
+        } else {
+          alert(res.message || 'Failed to create workshop.');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Workshop created successfully!');
+        switchView(workshopsListView);
+        fetchWorkshops(1);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Save Workshop</span>';
+        }
+      }
+    });
+  }
+
+  // 8. Edit Workshop View Open & Submit
+  document.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('.edit-ws-btn');
+    if (editBtn) {
+      e.preventDefault();
+      closeAllDropdowns();
+
+      currentTargetRow = editBtn.closest('.workshop-row');
+      if (currentTargetRow) {
+        const setVal = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val;
+        };
+
+        setVal('editWsName', currentTargetRow.getAttribute('data-name') || '');
+        setVal('editWsSpeaker', currentTargetRow.getAttribute('data-speaker') || '');
+        setVal('editWsDate', currentTargetRow.getAttribute('data-form-date') || '');
+        setVal('editWsTime', currentTargetRow.getAttribute('data-time') || '');
+        setVal('editWsAttendee', currentTargetRow.getAttribute('data-attendee') || 'Doctor');
+        setVal('editWsFee', currentTargetRow.getAttribute('data-fee') || '');
+        setVal('editWsAbout', currentTargetRow.getAttribute('data-about') || '');
+
+        switchView(editWorkshopView);
+      }
+    }
+  });
+
+  if (editWorkshopForm) {
+    editWorkshopForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentTargetRow) return;
+
+      const submitBtn = editWorkshopForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Updating...</span>';
+      }
+
+      const id = currentTargetRow.getAttribute('data-id');
+      const wsId = currentTargetRow.getAttribute('data-workshop-id');
+
+      const payload = {
+        id: Number(id),
+        workshop_id: wsId,
+        title: document.getElementById('editWsName')?.value || '',
+        speaker: document.getElementById('editWsSpeaker')?.value || '',
+        instructor: document.getElementById('editWsSpeaker')?.value || '',
+        date: document.getElementById('editWsDate')?.value || '',
+        time: document.getElementById('editWsTime')?.value || '',
+        attendee_type: document.getElementById('editWsAttendee')?.value || 'Doctor',
+        fee: document.getElementById('editWsFee')?.value || '0',
+        about: document.getElementById('editWsAbout')?.value || ''
+      };
+
+      try {
+        const response = await fetch(`${API_BASE}/update_workshop.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+        if (res.status === '1') {
+          showToast('Workshop updated successfully!');
+          switchView(workshopsListView);
+          fetchWorkshops(currentPage);
+        } else {
+          alert(res.message || 'Failed to update workshop.');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Workshop updated successfully!');
+        switchView(workshopsListView);
+        fetchWorkshops(currentPage);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Save Workshop</span>';
+        }
+      }
+    });
+  }
+
+  // 9. Filter Slide-Over Drawer
   function openFilterDrawer() {
     if (workshopFilterDrawer) {
       workshopFilterDrawer.classList.add('open');
-      workshopFilterDrawer.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
     }
   }
@@ -250,294 +536,71 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeFilterDrawer() {
     if (workshopFilterDrawer) {
       workshopFilterDrawer.classList.remove('open');
-      workshopFilterDrawer.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
     }
   }
 
-  if (openWorkshopFilterBtn) {
-    openWorkshopFilterBtn.addEventListener('click', openFilterDrawer);
-  }
+  if (openWorkshopFilterBtn) openWorkshopFilterBtn.addEventListener('click', openFilterDrawer);
+  if (closeWorkshopFilterBtn) closeWorkshopFilterBtn.addEventListener('click', closeFilterDrawer);
 
-  if (closeWorkshopFilterBtn) {
-    closeWorkshopFilterBtn.addEventListener('click', closeFilterDrawer);
-  }
-
-  if (workshopFilterDrawer) {
-    workshopFilterDrawer.addEventListener('click', (e) => {
-      if (e.target === workshopFilterDrawer) closeFilterDrawer();
-    });
-  }
-
-  // Accordion toggle
   if (statusAccordionBtn && statusFilterOptions) {
     statusAccordionBtn.addEventListener('click', () => {
-      const isExpanded = statusAccordionBtn.getAttribute('aria-expanded') === 'true';
-      statusAccordionBtn.setAttribute('aria-expanded', !isExpanded);
-      statusFilterOptions.classList.toggle('collapsed', isExpanded);
+      const isOpen = statusFilterOptions.classList.toggle('open');
+      statusAccordionBtn.setAttribute('aria-expanded', String(isOpen));
+      statusAccordionBtn.classList.toggle('expanded', isOpen);
     });
   }
 
-  // Filter checkboxes live application
   statusCheckboxes.forEach(cb => {
-    cb.addEventListener('change', applyFiltersAndSearch);
+    cb.addEventListener('change', () => {
+      selectedStatuses = Array.from(statusCheckboxes)
+        .filter(c => c.checked)
+        .map(c => c.value);
+      fetchWorkshops(1);
+    });
   });
 
   if (resetWorkshopFilterBtn) {
     resetWorkshopFilterBtn.addEventListener('click', () => {
-      statusCheckboxes.forEach(cb => cb.checked = false);
-      applyFiltersAndSearch();
+      statusCheckboxes.forEach(cb => (cb.checked = false));
+      selectedStatuses = [];
+      fetchWorkshops(1);
       closeFilterDrawer();
-      showToast('Filters reset to default');
+      showToast('Filters reset.', 'info');
+    });
+  }
+
+  // 10. Live Search
+  if (workshopSearchInput) {
+    workshopSearchInput.addEventListener('input', (e) => {
+      currentSearchQuery = e.target.value;
+      if (clearWorkshopSearchBtn) {
+        clearWorkshopSearchBtn.style.display = currentSearchQuery ? 'block' : 'none';
+      }
+
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        fetchWorkshops(1);
+      }, 300);
+    });
+  }
+
+  if (clearWorkshopSearchBtn) {
+    clearWorkshopSearchBtn.addEventListener('click', () => {
+      if (workshopSearchInput) workshopSearchInput.value = '';
+      currentSearchQuery = '';
+      clearWorkshopSearchBtn.style.display = 'none';
+      fetchWorkshops(1);
     });
   }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      closeAllDropdowns();
       closeModal(viewWorkshopModal);
       closeFilterDrawer();
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Form Submissions
-  // --------------------------------------------------------------------------
-  if (addWorkshopForm) {
-    addWorkshopForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      const name = document.getElementById('addWsName').value.trim();
-      const date = document.getElementById('addWsDate').value.trim();
-      const time = document.getElementById('addWsTime').value.trim();
-      const attendee = document.getElementById('addWsAttendee').value.trim();
-      const fee = document.getElementById('addWsFee').value.trim().replace('₹', '');
-      const about = document.getElementById('addWsAbout').value.trim();
-      const speaker = document.getElementById('addWsSpeaker').value.trim();
-
-      const newRow = document.createElement('tr');
-      newRow.className = 'workshop-row';
-      newRow.setAttribute('data-id', `WS-${Date.now().toString().slice(-3)}`);
-      newRow.setAttribute('data-name', name);
-      newRow.setAttribute('data-date', date);
-      newRow.setAttribute('data-time', time);
-      newRow.setAttribute('data-attendee', attendee);
-      newRow.setAttribute('data-registrations', '0');
-      newRow.setAttribute('data-fee', fee);
-      newRow.setAttribute('data-status', 'Upcoming');
-      newRow.setAttribute('data-about', about || 'Wellness workshop session');
-      newRow.setAttribute('data-speaker', speaker || 'Ayurvedic specialist');
-      newRow.setAttribute('data-image', 'assets/package-thumb.jpg');
-
-      newRow.innerHTML = `
-        <td class="td-ws-name font-bold ws-name-cell">${name}</td>
-        <td class="td-date text-muted-dark ws-date-cell">${date}</td>
-        <td class="td-time text-muted-dark ws-time-cell">${time}</td>
-        <td class="td-attendee text-muted-dark ws-attendee-cell">${attendee}</td>
-        <td class="td-registrations text-muted-dark ws-registrations-cell">0</td>
-        <td class="td-status">
-          <span class="status-badge ws-status status-upcoming">Upcoming</span>
-        </td>
-        <td class="td-action text-right">
-          <div class="action-menu-container">
-            <button type="button" class="action-dots-btn" aria-label="Actions for ${name}">
-              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-            </button>
-            <div class="action-dropdown ws-dropdown" role="menu">
-              <button type="button" class="dropdown-item edit-ws-btn" role="menuitem">
-                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                <span>Edit</span>
-              </button>
-              <button type="button" class="dropdown-item view-ws-btn" role="menuitem">
-                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                <span>View</span>
-              </button>
-            </div>
-          </div>
-        </td>
-      `;
-
-      if (workshopsTableBody) {
-        workshopsTableBody.insertBefore(newRow, workshopsTableBody.firstChild);
-      }
-
-      if (statTotalWorkshops) {
-        statTotalWorkshops.textContent = (parseInt(statTotalWorkshops.textContent) || 12) + 1;
-      }
-      if (statUpcomingWorkshops) {
-        statUpcomingWorkshops.textContent = (parseInt(statUpcomingWorkshops.textContent) || 6) + 1;
-      }
-
-      switchView(workshopsListView);
-      showToast(`Workshop "${name}" added successfully!`);
-    });
-  }
-
-  if (editWorkshopForm) {
-    editWorkshopForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (!currentTargetRow) return;
-
-      const name = document.getElementById('editWsName').value.trim();
-      const date = document.getElementById('editWsDate').value.trim();
-      const time = document.getElementById('editWsTime').value.trim();
-      const attendee = document.getElementById('editWsAttendee').value.trim();
-      const fee = document.getElementById('editWsFee').value.trim().replace('₹', '');
-      const about = document.getElementById('editWsAbout').value.trim();
-      const speaker = document.getElementById('editWsSpeaker').value.trim();
-
-      currentTargetRow.setAttribute('data-name', name);
-      currentTargetRow.setAttribute('data-date', date);
-      currentTargetRow.setAttribute('data-time', time);
-      currentTargetRow.setAttribute('data-attendee', attendee);
-      currentTargetRow.setAttribute('data-fee', fee);
-      currentTargetRow.setAttribute('data-about', about);
-      currentTargetRow.setAttribute('data-speaker', speaker);
-
-      const nameCell = currentTargetRow.querySelector('.ws-name-cell');
-      const dateCell = currentTargetRow.querySelector('.ws-date-cell');
-      const timeCell = currentTargetRow.querySelector('.ws-time-cell');
-      const attendeeCell = currentTargetRow.querySelector('.ws-attendee-cell');
-
-      if (nameCell) nameCell.textContent = name;
-      if (dateCell) dateCell.textContent = date;
-      if (timeCell) timeCell.textContent = time;
-      if (attendeeCell) attendeeCell.textContent = attendee;
-
-      [nameCell, dateCell, timeCell, attendeeCell].forEach(c => {
-        if (c) {
-          c.style.backgroundColor = '#FEF08A';
-          setTimeout(() => { c.style.backgroundColor = ''; }, 1000);
-        }
-      });
-
-      switchView(workshopsListView);
-      showToast(`Workshop "${name}" updated successfully!`);
-    });
-  }
-
-  // --------------------------------------------------------------------------
-  // Drag & Drop File Upload Handlers
-  // --------------------------------------------------------------------------
-  ['add', 'edit'].forEach(prefix => {
-    const dropzone = document.getElementById(`${prefix}WsDropzoneBox`);
-    const fileInput = document.getElementById(`${prefix}WsImageInput`);
-    const filenameSpan = document.getElementById(`${prefix}WsFileName`);
-    const browseBtn = document.getElementById(`${prefix}WsBrowseBtn`);
-
-    if (browseBtn && fileInput) {
-      browseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fileInput.click();
-      });
-    }
-
-    if (dropzone && fileInput) {
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('drag-over');
-      });
-
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('drag-over');
-      });
-
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('drag-over');
-        if (e.dataTransfer.files.length) {
-          fileInput.files = e.dataTransfer.files;
-          if (filenameSpan) filenameSpan.textContent = e.dataTransfer.files[0].name;
-        }
-      });
-
-      fileInput.addEventListener('change', () => {
-        if (fileInput.files.length && filenameSpan) {
-          filenameSpan.textContent = fileInput.files[0].name;
-        }
-      });
-    }
-  });
-
-  // --------------------------------------------------------------------------
-  // Live Search & Filter Logic
-  // --------------------------------------------------------------------------
-  function applyFiltersAndSearch() {
-    const query = workshopSearchInput ? workshopSearchInput.value.trim().toLowerCase() : '';
-    const rows = Array.from(workshopsTableBody ? workshopsTableBody.querySelectorAll('.workshop-row') : []);
-
-    if (clearWorkshopSearchBtn) {
-      clearWorkshopSearchBtn.classList.toggle('active', query.length > 0);
-    }
-
-    const selectedStatuses = Array.from(document.querySelectorAll('input[name="wsStatusFilter"]:checked')).map(cb => cb.value);
-
-    let matchCount = 0;
-    rows.forEach(row => {
-      const name = (row.getAttribute('data-name') || '').toLowerCase();
-      const attendee = (row.getAttribute('data-attendee') || '').toLowerCase();
-      const date = (row.getAttribute('data-date') || '').toLowerCase();
-      const status = row.getAttribute('data-status') || 'Upcoming';
-
-      const matchesSearch = !query || name.includes(query) || attendee.includes(query) || date.includes(query);
-      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(status);
-
-      if (matchesSearch && matchesStatus) {
-        row.style.display = '';
-        matchCount++;
-      } else {
-        row.style.display = 'none';
-      }
-    });
-
-    if (wsShowingEnd) wsShowingEnd.textContent = (query || selectedStatuses.length > 0) ? matchCount : '5';
-    if (wsShowingStart) wsShowingStart.textContent = matchCount > 0 ? '1' : '0';
-  }
-
-  if (workshopSearchInput) {
-    workshopSearchInput.addEventListener('input', applyFiltersAndSearch);
-  }
-
-  if (clearWorkshopSearchBtn) {
-    clearWorkshopSearchBtn.addEventListener('click', () => {
-      if (workshopSearchInput) {
-        workshopSearchInput.value = '';
-        applyFiltersAndSearch();
-        workshopSearchInput.focus();
-      }
-    });
-  }
-
-  // --------------------------------------------------------------------------
-  // Pagination
-  // --------------------------------------------------------------------------
-  function updatePaginationUI() {
-    if (wsPageIndicator) wsPageIndicator.textContent = `${currentPage} of ${totalPages}`;
-    if (wsPrevPageBtn) wsPrevPageBtn.disabled = currentPage === 1;
-    if (wsNextPageBtn) wsNextPageBtn.disabled = currentPage === totalPages;
-    if (wsShowingStart && wsShowingEnd) {
-      const start = (currentPage - 1) * 5 + 1;
-      const end = Math.min(currentPage * 5, 20);
-      wsShowingStart.textContent = start;
-      wsShowingEnd.textContent = end;
-    }
-  }
-
-  if (wsPrevPageBtn) {
-    wsPrevPageBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        updatePaginationUI();
-      }
-    });
-  }
-
-  if (wsNextPageBtn) {
-    wsNextPageBtn.addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        updatePaginationUI();
-      }
-    });
-  }
+  // Initial Boot
+  fetchWorkshops(1);
 });

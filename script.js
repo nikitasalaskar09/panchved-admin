@@ -1,5 +1,5 @@
 /**
- * Panchved Login Page - Interactive Handlers
+ * Panchved Login Page - Interactive Handlers & REST API Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -52,12 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
       passwordInput.type = isPassword ? 'text' : 'password';
 
       if (isPassword) {
-        eyeOffIcon.style.display = 'none';
-        eyeOnIcon.style.display = 'block';
+        if (eyeOffIcon) eyeOffIcon.style.display = 'none';
+        if (eyeOnIcon) eyeOnIcon.style.display = 'block';
         passwordToggle.setAttribute('aria-label', 'Hide password');
       } else {
-        eyeOffIcon.style.display = 'block';
-        eyeOnIcon.style.display = 'none';
+        if (eyeOffIcon) eyeOffIcon.style.display = 'block';
+        if (eyeOnIcon) eyeOnIcon.style.display = 'none';
         passwordToggle.setAttribute('aria-label', 'Show password');
       }
       passwordInput.focus();
@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Numeric-only phone number input
   if (phoneNumberInput) {
     phoneNumberInput.addEventListener('input', (e) => {
-      // Remove any non-digit character
       e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
       clearError(phoneContainer, phoneError);
     });
@@ -79,14 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 3. Form Validation & Submission
+  // 3. Form Validation & API Submission
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       let isValid = true;
 
-      const phoneValue = phoneNumberInput.value.trim();
-      const passwordValue = passwordInput.value;
+      const phoneValue = phoneNumberInput ? phoneNumberInput.value.trim() : '';
+      const passwordValue = passwordInput ? passwordInput.value : '';
 
       // Phone Validation
       if (!phoneValue) {
@@ -110,26 +109,73 @@ document.addEventListener('DOMContentLoaded', () => {
         clearError(passwordContainer, passwordError);
       }
 
-      if (isValid) {
-        // Show loading state
-        const originalText = loginBtn.innerHTML;
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = `<span>Logging in...</span>`;
-        loginBtn.style.opacity = '0.85';
+      if (!isValid) return;
 
-        // Simulate API call and redirect to dashboard
+      // Show loading button state
+      const originalText = loginBtn.innerHTML;
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = `
+        <span style="display:inline-flex; align-items:center; gap:8px;">
+          <svg style="animation: spin 1s linear infinite; width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+          </svg>
+          <span>Logging in...</span>
+        </span>
+        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+      `;
+      loginBtn.style.opacity = '0.9';
+
+      const API_URL = (window.API_BASE_URL || 'api') + '/login.php';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            phoneNumber: phoneValue,
+            phone_number: phoneValue,
+            password: passwordValue
+          })
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || result.status !== '1') {
+          throw new Error(result.message || 'Invalid credentials. Please try again.');
+        }
+
+        // Store user and token
+        if (window.PanchvedAuth) {
+          window.PanchvedAuth.setUser(result.user, result.token);
+        } else {
+          localStorage.setItem('panchved_user', JSON.stringify(result.user));
+          localStorage.setItem('panchved_token', result.token || '');
+        }
+
+        if (window.showAppToast) {
+          window.showAppToast('Login successful! Redirecting...', 'success');
+        }
+
         setTimeout(() => {
-          loginBtn.disabled = false;
-          loginBtn.innerHTML = originalText;
-          loginBtn.style.opacity = '1';
           window.location.href = 'dashboard.html';
-        }, 800);
+        }, 500);
+
+      } catch (err) {
+        console.error('Login error:', err);
+        showError(passwordContainer, passwordError, err.message || 'Login failed. Please check your credentials.');
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = originalText;
+        loginBtn.style.opacity = '1';
       }
     });
   }
 
   function showError(container, errorElement, message) {
-    container.classList.add('has-error');
+    if (container) container.classList.add('has-error');
     if (errorElement) {
       errorElement.textContent = message;
       errorElement.classList.add('active');
@@ -137,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function clearError(container, errorElement) {
-    container.classList.remove('has-error');
+    if (container) container.classList.remove('has-error');
     if (errorElement) {
       errorElement.textContent = '';
       errorElement.classList.remove('active');

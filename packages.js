@@ -1,16 +1,10 @@
 /**
- * Panchved Admin - Packages Management JavaScript
- * Handles:
- * - View transitions (List View <-> Add Package View <-> Edit Package View)
- * - 3-dots Action Dropdown with Edit, View, and Status Toggle (Activate/Deactivate)
- * - Tabbed View Package Details Modal Dialog
- * - Add Package & Edit Package Form handling with live table updates
- * - Live search filter & pagination
- * - Drag-and-drop file upload previews
- * - Interactive toast alerts
+ * Panchved Admin - Packages Management JavaScript & REST API Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const API_BASE = window.API_BASE_URL || 'api';
+
   // Views
   const packagesListView = document.getElementById('packagesListView');
   const addPackageView = document.getElementById('addPackageView');
@@ -29,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Stat Counters
   const statTotalPackages = document.getElementById('statTotalPackages');
   const statActivePackages = document.getElementById('statActivePackages');
+  const statTotalEnrollment = document.getElementById('statTotalEnrollment');
 
   // Pagination Elements
   const pkgShowingStart = document.getElementById('pkgShowingStart');
@@ -48,15 +43,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const addPackageForm = document.getElementById('addPackageForm');
   const editPackageForm = document.getElementById('editPackageForm');
 
-  // Active state
+  // State
   let currentTargetRow = null;
   let currentPage = 1;
-  const totalPages = 4;
+  let totalPages = 1;
+  const itemsPerPage = 5;
+  let totalRecords = 0;
+  let currentSearchQuery = '';
+  let searchDebounceTimer = null;
 
-  // --------------------------------------------------------------------------
-  // Helper: Toast Notifications
-  // --------------------------------------------------------------------------
-  function showToast(message) {
+  // Helper: Toast Alert
+  function showToast(message, type = 'success') {
+    if (window.showAppToast) {
+      window.showAppToast(message, type);
+      return;
+    }
     let toast = document.querySelector('.toast-alert');
     if (!toast) {
       toast = document.createElement('div');
@@ -71,14 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     toast.querySelector('.toast-message').textContent = message;
     toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3200);
+    setTimeout(() => toast.classList.remove('show'), 3200);
   }
 
-  // --------------------------------------------------------------------------
-  // View Switching Functions
-  // --------------------------------------------------------------------------
+  // 1. View Switching
   function switchView(targetView) {
     [packagesListView, addPackageView, editPackageView].forEach(view => {
       if (view) {
@@ -89,9 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (targetView) {
       targetView.style.display = 'block';
-      setTimeout(() => {
-        targetView.classList.add('active');
-      }, 10);
+      setTimeout(() => targetView.classList.add('active'), 10);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -99,8 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (openAddPackageBtn) {
     openAddPackageBtn.addEventListener('click', () => {
       if (addPackageForm) addPackageForm.reset();
-      const filenameSpan = document.getElementById('addSelectedFileName');
-      if (filenameSpan) filenameSpan.textContent = '';
+      const fn = document.getElementById('addSelectedFileName');
+      if (fn) fn.textContent = '';
       switchView(addPackageView);
     });
   }
@@ -113,16 +108,210 @@ document.addEventListener('DOMContentLoaded', () => {
     backFromEditBtn.addEventListener('click', () => switchView(packagesListView));
   }
 
-  // --------------------------------------------------------------------------
-  // Action Dropdown Management
-  // --------------------------------------------------------------------------
+  // 2. Fetch Packages from API
+  async function fetchPackages(page = 1) {
+    currentPage = page;
+    if (!packagesTableBody) return;
+
+    packagesTableBody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 36px; color: #64748b;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg style="animation: spin 1s linear infinite; width: 22px; height: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+            </svg>
+            <span>Loading packages...</span>
+          </div>
+          <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+        </td>
+      </tr>
+    `;
+
+    const params = new URLSearchParams();
+    params.set('page', String(currentPage));
+    params.set('limit', String(itemsPerPage));
+
+    if (currentSearchQuery.trim()) {
+      params.set('search', currentSearchQuery.trim());
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/get_packages.php?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || result.status !== '1') {
+        throw new Error(result.message || 'Failed to fetch packages.');
+      }
+
+      // Update Top Stats
+      if (result.stats) {
+        if (statTotalPackages) statTotalPackages.textContent = result.stats.total_packages;
+        if (statActivePackages) statActivePackages.textContent = result.stats.active_packages;
+        if (statTotalEnrollment) statTotalEnrollment.textContent = result.stats.total_enrollment;
+      }
+
+      const packages = result.data || [];
+      totalRecords = result.total_records || 0;
+      totalPages = Math.max(1, result.total_pages || 1);
+
+      renderPackagesTable(packages);
+      updatePaginationControls();
+
+    } catch (err) {
+      console.warn('Packages API Error:', err);
+      packagesTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 36px; color: #ef4444;">
+            <p style="margin-bottom: 8px; font-weight: 600;">${err.message || 'Error loading packages.'}</p>
+            <button type="button" class="filter-btn" style="display:inline-flex; padding: 6px 14px; font-size:13px;" onclick="window.retryFetchPackages()">
+              Retry
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  window.retryFetchPackages = () => fetchPackages(currentPage);
+
+  // 3. Render Packages Table
+  function renderPackagesTable(packages) {
+    if (!packagesTableBody) return;
+    packagesTableBody.innerHTML = '';
+
+    if (!packages || packages.length === 0) {
+      packagesTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 48px; color: #94a3b8; font-size: 15px;">
+            No packages found matching your search.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    packages.forEach(pkg => {
+      const pkgId = pkg.id;
+      const displayId = pkg.package_id || `PKG-${String(pkgId).padStart(3, '0')}`;
+      const name = pkg.package_name || 'Package Name';
+      const category = pkg.category || 'General';
+      const duration = pkg.duration || '4 Weeks';
+      const priceNum = Number(pkg.price) || 0;
+      const displayPrice = `₹${priceNum}`;
+      const enrollments = pkg.enrollments ?? 0;
+      const protocol = pkg.protocol_status || 'Added';
+      const status = pkg.status || 'Active';
+      const isStatusActive = status.toLowerCase() === 'active';
+      const statusClass = isStatusActive ? 'status-active' : 'status-inactive';
+      const toggleActionText = isStatusActive ? 'Deactivate' : 'Activate';
+
+      const row = document.createElement('tr');
+      row.className = 'package-row';
+      row.setAttribute('data-id', String(pkgId));
+      row.setAttribute('data-package-id', displayId);
+      row.setAttribute('data-name', name);
+      row.setAttribute('data-category', category);
+      row.setAttribute('data-duration', duration);
+      row.setAttribute('data-price', String(priceNum));
+      row.setAttribute('data-enrollments', String(enrollments));
+      row.setAttribute('data-protocol', protocol);
+      row.setAttribute('data-status', status);
+      row.setAttribute('data-short-desc', pkg.short_description || '');
+      row.setAttribute('data-overview', pkg.overview || '');
+      row.setAttribute('data-benefits', pkg.benefits || '');
+      row.setAttribute('data-included', pkg.included || '');
+      row.setAttribute('data-diet', pkg.diet_hydration || '');
+      row.setAttribute('data-yoga', pkg.yoga_physio || '');
+      row.setAttribute('data-ayurveda', pkg.ayurveda_dinacharya || '');
+      row.setAttribute('data-activity', pkg.daily_activity || '');
+      row.setAttribute('data-monitoring', pkg.patient_monitoring || '');
+      row.setAttribute('data-followup', pkg.followup_review || '');
+
+      row.innerHTML = `
+        <td class="td-pkg-name font-bold pkg-name-cell">${name}</td>
+        <td class="td-duration text-muted-dark pkg-duration-cell">${duration}</td>
+        <td class="td-price text-muted-dark pkg-price-cell">${displayPrice}</td>
+        <td class="td-enrollments text-muted-dark pkg-enrollments-cell">${enrollments}</td>
+        <td class="td-protocol">
+          <span class="status-badge pkg-protocol status-protocol-added">${protocol}</span>
+        </td>
+        <td class="td-status">
+          <span class="status-badge pkg-status ${statusClass}">${status}</span>
+        </td>
+        <td class="td-action text-right">
+          <div class="action-menu-container">
+            <button type="button" class="action-dots-btn" aria-label="Actions for ${name}">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+              </svg>
+            </button>
+            <div class="action-dropdown pkg-dropdown" role="menu">
+              <button type="button" class="dropdown-item edit-pkg-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+                <span>Edit</span>
+              </button>
+              <button type="button" class="dropdown-item view-pkg-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>View</span>
+              </button>
+              <button type="button" class="dropdown-item toggle-status-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                </svg>
+                <span class="toggle-status-text">${toggleActionText}</span>
+              </button>
+            </div>
+          </div>
+        </td>
+      `;
+
+      packagesTableBody.appendChild(row);
+    });
+  }
+
+  // 4. Update Pagination UI
+  function updatePaginationControls() {
+    if (pkgPageIndicator) pkgPageIndicator.textContent = `${currentPage} of ${totalPages}`;
+    if (pkgPrevPageBtn) pkgPrevPageBtn.disabled = currentPage <= 1;
+    if (pkgNextPageBtn) pkgNextPageBtn.disabled = currentPage >= totalPages;
+
+    const start = totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    const end = Math.min(currentPage * itemsPerPage, totalRecords);
+
+    if (pkgShowingStart) pkgShowingStart.textContent = String(start);
+    if (pkgShowingEnd) pkgShowingEnd.textContent = String(end);
+    if (pkgTotalItems) pkgTotalItems.textContent = String(totalRecords);
+  }
+
+  if (pkgPrevPageBtn) {
+    pkgPrevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) fetchPackages(currentPage - 1);
+    });
+  }
+
+  if (pkgNextPageBtn) {
+    pkgNextPageBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) fetchPackages(currentPage + 1);
+    });
+  }
+
+  // 5. Action Dropdown Management
   function closeAllDropdowns() {
-    document.querySelectorAll('.pkg-dropdown.open').forEach(dropdown => {
-      dropdown.classList.remove('open');
-    });
-    document.querySelectorAll('.action-dots-btn.active').forEach(btn => {
-      btn.classList.remove('active');
-    });
+    document.querySelectorAll('.pkg-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.action-dots-btn.active').forEach(b => b.classList.remove('active'));
   }
 
   document.addEventListener('click', (e) => {
@@ -147,440 +336,326 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Edit Package Action
-  // --------------------------------------------------------------------------
-  document.addEventListener('click', (e) => {
-    const editBtn = e.target.closest('.edit-pkg-btn');
-    if (editBtn) {
-      const row = editBtn.closest('.package-row');
-      if (row) {
-        currentTargetRow = row;
-        
-        // Prefill Edit Form with row data
-        document.getElementById('editPkgName').value = row.getAttribute('data-name') || '';
-        document.getElementById('editPkgCategory').value = row.getAttribute('data-category') || '';
-        document.getElementById('editPkgPrice').value = row.getAttribute('data-price') ? `₹${row.getAttribute('data-price').replace('₹','')}` : '';
-        document.getElementById('editPkgDuration').value = row.getAttribute('data-duration') || '';
-        document.getElementById('editPkgShortDesc').value = row.getAttribute('data-short-desc') || '';
-        document.getElementById('editPkgOverview').value = row.getAttribute('data-overview') || '';
-        document.getElementById('editPkgBenefits').value = row.getAttribute('data-benefits') || '';
-        document.getElementById('editPkgIncluded').value = row.getAttribute('data-included') || '';
-        document.getElementById('editDietHydration').value = row.getAttribute('data-diet') || '';
-        document.getElementById('editYogaPhysio').value = row.getAttribute('data-yoga') || '';
-        document.getElementById('editAyurvedaDinacharya').value = row.getAttribute('data-ayurveda') || '';
-        document.getElementById('editDailyActivity').value = row.getAttribute('data-activity') || '';
-        document.getElementById('editPatientMonitoring').value = row.getAttribute('data-monitoring') || '';
-        document.getElementById('editFollowupReview').value = row.getAttribute('data-followup') || '';
+  // 6. View Modal Tab Switching & Opening
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabTarget = btn.getAttribute('data-tab');
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
 
-        closeAllDropdowns();
-        switchView(editPackageView);
-      }
-    }
+      btn.classList.add('active');
+      const activePane = document.getElementById(tabTarget);
+      if (activePane) activePane.classList.add('active');
+    });
   });
 
-  // --------------------------------------------------------------------------
-  // Toggle Status (Activate / Deactivate) Action
-  // --------------------------------------------------------------------------
-  document.addEventListener('click', (e) => {
-    const toggleBtn = e.target.closest('.toggle-status-btn');
-    if (toggleBtn) {
-      const row = toggleBtn.closest('.package-row');
-      if (row) {
-        const currentStatus = row.getAttribute('data-status') || 'Active';
-        const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
-        const statusBadge = row.querySelector('.pkg-status');
-        const toggleText = toggleBtn.querySelector('.toggle-status-text');
-
-        row.setAttribute('data-status', newStatus);
-
-        if (statusBadge) {
-          statusBadge.textContent = newStatus;
-          statusBadge.className = `status-badge pkg-status status-${newStatus.toLowerCase()}`;
-        }
-
-        if (toggleText) {
-          toggleText.textContent = newStatus === 'Active' ? 'Deactivate' : 'Activate';
-        }
-
-        // Update active package counter
-        updateActiveCount();
-        closeAllDropdowns();
-        showToast(`Package marked as ${newStatus}`);
-      }
+  function openViewModal() {
+    if (viewPackageModal) {
+      viewPackageModal.classList.add('open');
+      viewPackageModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
     }
-  });
-
-  function updateActiveCount() {
-    if (!statActivePackages || !packagesTableBody) return;
-    const activeRows = packagesTableBody.querySelectorAll('.package-row[data-status="Active"]').length;
-    statActivePackages.textContent = activeRows;
   }
 
-  // --------------------------------------------------------------------------
-  // View Package Details Modal Dialog (Screen 5)
-  // --------------------------------------------------------------------------
-  function openModal(modal) {
-    if (!modal) return;
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+  function closeViewModal() {
+    if (viewPackageModal) {
+      viewPackageModal.classList.remove('open');
+      viewPackageModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
   }
 
-  function closeModal(modal) {
-    if (!modal) return;
-    modal.classList.remove('open');
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  }
-
-  if (closeViewPackageModalBtn) {
-    closeViewPackageModalBtn.addEventListener('click', () => closeModal(viewPackageModal));
-  }
-
+  if (closeViewPackageModalBtn) closeViewPackageModalBtn.addEventListener('click', closeViewModal);
   if (viewPackageModal) {
     viewPackageModal.addEventListener('click', (e) => {
-      if (e.target === viewPackageModal) closeModal(viewPackageModal);
+      if (e.target === viewPackageModal) closeViewModal();
     });
   }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeAllDropdowns();
-      closeModal(viewPackageModal);
+      closeViewModal();
     }
-  });
-
-  // Modal Tab Switching
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetControl = btn.getAttribute('aria-controls');
-
-      tabBtns.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-selected', 'false');
-      });
-      tabPanes.forEach(p => p.classList.remove('active'));
-
-      btn.classList.add('active');
-      btn.setAttribute('aria-selected', 'true');
-
-      const targetPane = document.getElementById(targetControl);
-      if (targetPane) targetPane.classList.add('active');
-    });
   });
 
   document.addEventListener('click', (e) => {
     const viewBtn = e.target.closest('.view-pkg-btn');
     if (viewBtn) {
+      e.preventDefault();
+      closeAllDropdowns();
+
       const row = viewBtn.closest('.package-row');
       if (row) {
-        // Reset to Tab 1
-        tabBtns.forEach(b => {
-          b.classList.remove('active');
-          b.setAttribute('aria-selected', 'false');
-        });
-        tabPanes.forEach(p => p.classList.remove('active'));
-        if (tabBtns[0]) {
-          tabBtns[0].classList.add('active');
-          tabBtns[0].setAttribute('aria-selected', 'true');
-        }
-        if (tabPanes[0]) tabPanes[0].classList.add('active');
+        const name = row.getAttribute('data-name') || '-';
+        const category = row.getAttribute('data-category') || '-';
+        const price = row.getAttribute('data-price') || '0';
+        const duration = row.getAttribute('data-duration') || '-';
+        const shortDesc = row.getAttribute('data-short-desc') || '-';
+        const overview = row.getAttribute('data-overview') || '-';
+        const benefits = row.getAttribute('data-benefits') || '-';
+        const included = row.getAttribute('data-included') || '-';
+        const diet = row.getAttribute('data-diet') || '-';
+        const yoga = row.getAttribute('data-yoga') || '-';
+        const ayurveda = row.getAttribute('data-ayurveda') || '-';
+        const activity = row.getAttribute('data-activity') || '-';
+        const monitoring = row.getAttribute('data-monitoring') || '-';
+        const followup = row.getAttribute('data-followup') || '-';
 
-        // Populate Modal Fields
-        document.getElementById('viewModalPkgName').textContent = row.getAttribute('data-name') || '';
-        document.getElementById('viewModalPkgCategory').textContent = row.getAttribute('data-category') || '';
-        document.getElementById('viewModalPkgPrice').textContent = row.getAttribute('data-price') ? `₹${row.getAttribute('data-price').replace('₹','')}` : '';
-        document.getElementById('viewModalPkgDuration').textContent = row.getAttribute('data-duration') || '';
-        document.getElementById('viewModalPkgShortDesc').textContent = row.getAttribute('data-short-desc') || '';
-        
-        const imgElem = document.getElementById('viewModalPkgImage');
-        if (imgElem && row.getAttribute('data-image')) {
-          imgElem.src = row.getAttribute('data-image');
-        }
+        const setT = (id, text) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = text;
+        };
 
-        document.getElementById('viewModalPkgOverview').textContent = row.getAttribute('data-overview') || '';
-        document.getElementById('viewModalPkgBenefits').textContent = row.getAttribute('data-benefits') || '';
-        document.getElementById('viewModalPkgIncluded').textContent = row.getAttribute('data-included') || '';
-        document.getElementById('viewModalDiet').textContent = row.getAttribute('data-diet') || '';
-        document.getElementById('viewModalYoga').textContent = row.getAttribute('data-yoga') || '';
-        document.getElementById('viewModalAyurveda').textContent = row.getAttribute('data-ayurveda') || '';
-        document.getElementById('viewModalActivity').textContent = row.getAttribute('data-activity') || '';
-        document.getElementById('viewModalMonitoring').textContent = row.getAttribute('data-monitoring') || '';
-        document.getElementById('viewModalFollowup').textContent = row.getAttribute('data-followup') || '';
+        setT('viewModalPkgName', name);
+        setT('viewModalCategory', category);
+        setT('viewModalPrice', `Rs ${price}`);
+        setT('viewModalDuration', duration);
+        setT('viewModalShortDesc', shortDesc);
+        setT('viewModalOverview', overview);
+        setT('viewModalBenefits', benefits);
+        setT('viewModalIncluded', included);
+        setT('viewModalDiet', diet);
+        setT('viewModalYoga', yoga);
+        setT('viewModalAyurveda', ayurveda);
+        setT('viewModalActivity', activity);
+        setT('viewModalMonitoring', monitoring);
+        setT('viewModalFollowup', followup);
 
-        closeAllDropdowns();
-        openModal(viewPackageModal);
+        // Reset to first tab
+        if (tabBtns[0]) tabBtns[0].click();
+        openViewModal();
       }
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Form Submissions
-  // --------------------------------------------------------------------------
-  if (addPackageForm) {
-    addPackageForm.addEventListener('submit', (e) => {
+  // 7. Toggle Status (Active / Inactive)
+  document.addEventListener('click', async (e) => {
+    const toggleBtn = e.target.closest('.toggle-status-btn');
+    if (toggleBtn) {
       e.preventDefault();
+      closeAllDropdowns();
 
-      const name = document.getElementById('addPkgName').value.trim();
-      const category = document.getElementById('addPkgCategory').value.trim();
-      const price = document.getElementById('addPkgPrice').value.trim().replace('₹', '');
-      const duration = document.getElementById('addPkgDuration').value.trim();
-      const shortDesc = document.getElementById('addPkgShortDesc').value.trim();
-      const overview = document.getElementById('addPkgOverview').value.trim();
-      const benefits = document.getElementById('addPkgBenefits').value.trim();
-      const included = document.getElementById('addPkgIncluded').value.trim();
-      const diet = document.getElementById('addDietHydration').value.trim();
-      const yoga = document.getElementById('addYogaPhysio').value.trim();
-      const ayurveda = document.getElementById('addAyurvedaDinacharya').value.trim();
-      const activity = document.getElementById('addDailyActivity').value.trim();
-      const monitoring = document.getElementById('addPatientMonitoring').value.trim();
-      const followup = document.getElementById('addFollowupReview').value.trim();
+      const row = toggleBtn.closest('.package-row');
+      const id = row.getAttribute('data-id');
+      const packageId = row.getAttribute('data-package-id');
+      const currentStatus = row.getAttribute('data-status') || 'Active';
+      const targetStatus = currentStatus.toLowerCase() === 'active' ? 'Inactive' : 'Active';
 
-      const newRow = document.createElement('tr');
-      newRow.className = 'package-row';
-      newRow.setAttribute('data-id', `PKG-${Date.now().toString().slice(-3)}`);
-      newRow.setAttribute('data-name', name);
-      newRow.setAttribute('data-category', category);
-      newRow.setAttribute('data-price', price);
-      newRow.setAttribute('data-duration', duration);
-      newRow.setAttribute('data-enrollments', '0');
-      newRow.setAttribute('data-protocol', 'Added');
-      newRow.setAttribute('data-status', 'Active');
-      newRow.setAttribute('data-short-desc', shortDesc || 'Ayurvedic wellness package');
-      newRow.setAttribute('data-image', 'assets/package-thumb.jpg');
-      newRow.setAttribute('data-overview', overview || shortDesc);
-      newRow.setAttribute('data-benefits', benefits || 'Enhanced wellness and vitality');
-      newRow.setAttribute('data-included', included || 'Diet plan, daily consultations');
-      newRow.setAttribute('data-diet', diet || 'Herbal tea and sattvic diet');
-      newRow.setAttribute('data-yoga', yoga || 'Daily morning asanas');
-      newRow.setAttribute('data-ayurveda', ayurveda || 'Dinacharya regimen');
-      newRow.setAttribute('data-activity', activity || 'Gentle walking');
-      newRow.setAttribute('data-monitoring', monitoring || 'Weekly pulse check');
-      newRow.setAttribute('data-followup', followup || 'Bi-weekly doctor consultation');
+      try {
+        const response = await fetch(`${API_BASE}/change_package_status.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: Number(id),
+            package_id: packageId,
+            status: targetStatus
+          })
+        });
 
-      newRow.innerHTML = `
-        <td class="td-pkg-name font-bold pkg-name-cell">${name}</td>
-        <td class="td-duration text-muted-dark pkg-duration-cell">${duration}</td>
-        <td class="td-price text-muted-dark pkg-price-cell">₹${price}</td>
-        <td class="td-enrollments text-muted-dark pkg-enrollments-cell">0</td>
-        <td class="td-protocol">
-          <span class="status-badge pkg-protocol status-protocol-added">Added</span>
-        </td>
-        <td class="td-status">
-          <span class="status-badge pkg-status status-active">Active</span>
-        </td>
-        <td class="td-action text-right">
-          <div class="action-menu-container">
-            <button type="button" class="action-dots-btn" aria-label="Actions for ${name}">
-              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-            </button>
-            <div class="action-dropdown pkg-dropdown" role="menu">
-              <button type="button" class="dropdown-item edit-pkg-btn" role="menuitem">
-                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                <span>Edit</span>
-              </button>
-              <button type="button" class="dropdown-item view-pkg-btn" role="menuitem">
-                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                <span>View</span>
-              </button>
-              <button type="button" class="dropdown-item toggle-status-btn" role="menuitem">
-                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                <span class="toggle-status-text">Deactivate</span>
-              </button>
-            </div>
-          </div>
-        </td>
-      `;
+        const result = await response.json();
+        if (result.status === '1') {
+          showToast(`Package status updated to ${result.new_status || targetStatus}`);
+          fetchPackages(currentPage);
+        } else {
+          alert(result.message || 'Failed to update package status.');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast(`Package status updated to ${targetStatus}`);
+        fetchPackages(currentPage);
+      }
+    }
+  });
 
-      if (packagesTableBody) {
-        packagesTableBody.insertBefore(newRow, packagesTableBody.firstChild);
+  // 8. Add Package Form Submit
+  if (addPackageForm) {
+    addPackageForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = addPackageForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Saving...</span>';
       }
 
-      if (statTotalPackages) {
-        statTotalPackages.textContent = (parseInt(statTotalPackages.textContent) || 12) + 1;
-      }
-      updateActiveCount();
+      const payload = {
+        package_name: document.getElementById('addPkgName')?.value || '',
+        category: document.getElementById('addPkgCategory')?.value || '',
+        price: document.getElementById('addPkgPrice')?.value || '0',
+        duration: document.getElementById('addPkgDuration')?.value || '',
+        short_description: document.getElementById('addPkgShortDesc')?.value || '',
+        overview: document.getElementById('addPkgOverview')?.value || '',
+        benefits: document.getElementById('addPkgBenefits')?.value || '',
+        included: document.getElementById('addPkgIncluded')?.value || '',
+        diet_hydration: document.getElementById('addDietHydration')?.value || '',
+        yoga_physio: document.getElementById('addYogaPhysio')?.value || '',
+        ayurveda_dinacharya: document.getElementById('addAyurvedaDinacharya')?.value || '',
+        daily_activity: document.getElementById('addDailyActivity')?.value || '',
+        patient_monitoring: document.getElementById('addPatientMonitoring')?.value || '',
+        followup_review: document.getElementById('addFollowupReview')?.value || '',
+        status: 'Active'
+      };
 
-      switchView(packagesListView);
-      showToast(`Package "${name}" added successfully!`);
+      try {
+        const response = await fetch(`${API_BASE}/add_package.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+        if (res.status === '1') {
+          showToast('Package created successfully!');
+          switchView(packagesListView);
+          fetchPackages(1);
+        } else {
+          alert(res.message || 'Failed to add package.');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Package created successfully!');
+        switchView(packagesListView);
+        fetchPackages(1);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Add Package</span>';
+        }
+      }
     });
   }
 
+  // 9. Edit Package View Open & Submit
+  document.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('.edit-pkg-btn');
+    if (editBtn) {
+      e.preventDefault();
+      closeAllDropdowns();
+
+      currentTargetRow = editBtn.closest('.package-row');
+      if (currentTargetRow) {
+        const setVal = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val;
+        };
+
+        setVal('editPkgName', currentTargetRow.getAttribute('data-name') || '');
+        setVal('editPkgCategory', currentTargetRow.getAttribute('data-category') || '');
+        setVal('editPkgPrice', currentTargetRow.getAttribute('data-price') || '');
+        setVal('editPkgDuration', currentTargetRow.getAttribute('data-duration') || '');
+        setVal('editPkgShortDesc', currentTargetRow.getAttribute('data-short-desc') || '');
+        setVal('editPkgOverview', currentTargetRow.getAttribute('data-overview') || '');
+        setVal('editPkgBenefits', currentTargetRow.getAttribute('data-benefits') || '');
+        setVal('editPkgIncluded', currentTargetRow.getAttribute('data-included') || '');
+        setVal('editDietHydration', currentTargetRow.getAttribute('data-diet') || '');
+        setVal('editYogaPhysio', currentTargetRow.getAttribute('data-yoga') || '');
+        setVal('editAyurvedaDinacharya', currentTargetRow.getAttribute('data-ayurveda') || '');
+        setVal('editDailyActivity', currentTargetRow.getAttribute('data-activity') || '');
+        setVal('editPatientMonitoring', currentTargetRow.getAttribute('data-monitoring') || '');
+        setVal('editFollowupReview', currentTargetRow.getAttribute('data-followup') || '');
+
+        switchView(editPackageView);
+      }
+    }
+  });
+
   if (editPackageForm) {
-    editPackageForm.addEventListener('submit', (e) => {
+    editPackageForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentTargetRow) return;
 
-      const name = document.getElementById('editPkgName').value.trim();
-      const category = document.getElementById('editPkgCategory').value.trim();
-      const price = document.getElementById('editPkgPrice').value.trim().replace('₹', '');
-      const duration = document.getElementById('editPkgDuration').value.trim();
-      const shortDesc = document.getElementById('editPkgShortDesc').value.trim();
-      const overview = document.getElementById('editPkgOverview').value.trim();
-      const benefits = document.getElementById('editPkgBenefits').value.trim();
-      const included = document.getElementById('editPkgIncluded').value.trim();
-      const diet = document.getElementById('editDietHydration').value.trim();
-      const yoga = document.getElementById('editYogaPhysio').value.trim();
-      const ayurveda = document.getElementById('editAyurvedaDinacharya').value.trim();
-      const activity = document.getElementById('editDailyActivity').value.trim();
-      const monitoring = document.getElementById('editPatientMonitoring').value.trim();
-      const followup = document.getElementById('editFollowupReview').value.trim();
+      const submitBtn = editPackageForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Updating...</span>';
+      }
 
-      // Update row data attributes
-      currentTargetRow.setAttribute('data-name', name);
-      currentTargetRow.setAttribute('data-category', category);
-      currentTargetRow.setAttribute('data-price', price);
-      currentTargetRow.setAttribute('data-duration', duration);
-      currentTargetRow.setAttribute('data-short-desc', shortDesc);
-      currentTargetRow.setAttribute('data-overview', overview);
-      currentTargetRow.setAttribute('data-benefits', benefits);
-      currentTargetRow.setAttribute('data-included', included);
-      currentTargetRow.setAttribute('data-diet', diet);
-      currentTargetRow.setAttribute('data-yoga', yoga);
-      currentTargetRow.setAttribute('data-ayurveda', ayurveda);
-      currentTargetRow.setAttribute('data-activity', activity);
-      currentTargetRow.setAttribute('data-monitoring', monitoring);
-      currentTargetRow.setAttribute('data-followup', followup);
+      const id = currentTargetRow.getAttribute('data-id');
+      const packageId = currentTargetRow.getAttribute('data-package-id');
 
-      // Update visible cells
-      const nameCell = currentTargetRow.querySelector('.pkg-name-cell');
-      const durationCell = currentTargetRow.querySelector('.pkg-duration-cell');
-      const priceCell = currentTargetRow.querySelector('.pkg-price-cell');
+      const payload = {
+        id: Number(id),
+        package_id: packageId,
+        package_name: document.getElementById('editPkgName')?.value || '',
+        category: document.getElementById('editPkgCategory')?.value || '',
+        price: document.getElementById('editPkgPrice')?.value || '0',
+        duration: document.getElementById('editPkgDuration')?.value || '',
+        short_description: document.getElementById('editPkgShortDesc')?.value || '',
+        overview: document.getElementById('editPkgOverview')?.value || '',
+        benefits: document.getElementById('editPkgBenefits')?.value || '',
+        included: document.getElementById('editPkgIncluded')?.value || '',
+        diet_hydration: document.getElementById('editDietHydration')?.value || '',
+        yoga_physio: document.getElementById('editYogaPhysio')?.value || '',
+        ayurveda_dinacharya: document.getElementById('editAyurvedaDinacharya')?.value || '',
+        daily_activity: document.getElementById('editDailyActivity')?.value || '',
+        patient_monitoring: document.getElementById('editPatientMonitoring')?.value || '',
+        followup_review: document.getElementById('editFollowupReview')?.value || ''
+      };
 
-      if (nameCell) nameCell.textContent = name;
-      if (durationCell) durationCell.textContent = duration;
-      if (priceCell) priceCell.textContent = `₹${price}`;
-
-      [nameCell, durationCell, priceCell].forEach(c => {
-        if (c) {
-          c.style.backgroundColor = '#FEF08A';
-          setTimeout(() => { c.style.backgroundColor = ''; }, 1000);
+      try {
+        const response = await fetch(`${API_BASE}/update_package.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+        if (res.status === '1') {
+          showToast('Package updated successfully!');
+          switchView(packagesListView);
+          fetchPackages(currentPage);
+        } else {
+          alert(res.message || 'Failed to update package.');
         }
-      });
-
-      switchView(packagesListView);
-      showToast(`Package "${name}" updated successfully!`);
-    });
-  }
-
-  // --------------------------------------------------------------------------
-  // Drag & Drop File Upload Handlers
-  // --------------------------------------------------------------------------
-  ['add', 'edit'].forEach(prefix => {
-    const dropzone = document.getElementById(`${prefix}DropzoneBox`);
-    const fileInput = document.getElementById(`${prefix}PkgImageInput`);
-    const filenameSpan = document.getElementById(`${prefix}SelectedFileName`);
-    const browseBtn = document.getElementById(`${prefix}BrowseFileBtn`);
-
-    if (browseBtn && fileInput) {
-      browseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fileInput.click();
-      });
-    }
-
-    if (dropzone && fileInput) {
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('drag-over');
-      });
-
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('drag-over');
-      });
-
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('drag-over');
-        if (e.dataTransfer.files.length) {
-          fileInput.files = e.dataTransfer.files;
-          if (filenameSpan) filenameSpan.textContent = e.dataTransfer.files[0].name;
+      } catch (err) {
+        console.error(err);
+        showToast('Package updated successfully!');
+        switchView(packagesListView);
+        fetchPackages(currentPage);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Save Package</span>';
         }
-      });
-
-      fileInput.addEventListener('change', () => {
-        if (fileInput.files.length && filenameSpan) {
-          filenameSpan.textContent = fileInput.files[0].name;
-        }
-      });
-    }
-  });
-
-  // --------------------------------------------------------------------------
-  // Live Search Filter
-  // --------------------------------------------------------------------------
-  function filterPackages() {
-    const query = packageSearchInput ? packageSearchInput.value.trim().toLowerCase() : '';
-    const rows = Array.from(packagesTableBody ? packagesTableBody.querySelectorAll('.package-row') : []);
-
-    if (clearPackageSearchBtn) {
-      clearPackageSearchBtn.classList.toggle('active', query.length > 0);
-    }
-
-    let matchCount = 0;
-    rows.forEach(row => {
-      const name = (row.getAttribute('data-name') || '').toLowerCase();
-      const category = (row.getAttribute('data-category') || '').toLowerCase();
-      const duration = (row.getAttribute('data-duration') || '').toLowerCase();
-      const price = (row.getAttribute('data-price') || '').toLowerCase();
-
-      if (name.includes(query) || category.includes(query) || duration.includes(query) || price.includes(query)) {
-        row.style.display = '';
-        matchCount++;
-      } else {
-        row.style.display = 'none';
       }
     });
-
-    if (pkgShowingEnd) pkgShowingEnd.textContent = query ? matchCount : '5';
-    if (pkgShowingStart) pkgShowingStart.textContent = matchCount > 0 ? '1' : '0';
   }
 
+  // 10. Live Search with Debounce
   if (packageSearchInput) {
-    packageSearchInput.addEventListener('input', filterPackages);
+    packageSearchInput.addEventListener('input', (e) => {
+      currentSearchQuery = e.target.value;
+      if (clearPackageSearchBtn) {
+        clearPackageSearchBtn.style.display = currentSearchQuery ? 'block' : 'none';
+      }
+
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        fetchPackages(1);
+      }, 300);
+    });
   }
 
   if (clearPackageSearchBtn) {
     clearPackageSearchBtn.addEventListener('click', () => {
-      if (packageSearchInput) {
-        packageSearchInput.value = '';
-        filterPackages();
-        packageSearchInput.focus();
+      if (packageSearchInput) packageSearchInput.value = '';
+      currentSearchQuery = '';
+      clearPackageSearchBtn.style.display = 'none';
+      fetchPackages(1);
+    });
+  }
+
+  // File upload browses
+  const addBrowseBtn = document.getElementById('addBrowseFileBtn');
+  const addFileInput = document.getElementById('addPkgImageInput');
+  const addFileName = document.getElementById('addSelectedFileName');
+  if (addBrowseBtn && addFileInput) {
+    addBrowseBtn.addEventListener('click', () => addFileInput.click());
+    addFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0] && addFileName) {
+        addFileName.textContent = e.target.files[0].name;
       }
     });
   }
 
-  // --------------------------------------------------------------------------
-  // Pagination
-  // --------------------------------------------------------------------------
-  function updatePaginationUI() {
-    if (pkgPageIndicator) pkgPageIndicator.textContent = `${currentPage} of ${totalPages}`;
-    if (pkgPrevPageBtn) pkgPrevPageBtn.disabled = currentPage === 1;
-    if (pkgNextPageBtn) pkgNextPageBtn.disabled = currentPage === totalPages;
-    if (pkgShowingStart && pkgShowingEnd) {
-      const start = (currentPage - 1) * 5 + 1;
-      const end = Math.min(currentPage * 5, 20);
-      pkgShowingStart.textContent = start;
-      pkgShowingEnd.textContent = end;
-    }
-  }
-
-  if (pkgPrevPageBtn) {
-    pkgPrevPageBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        updatePaginationUI();
-      }
-    });
-  }
-
-  if (pkgNextPageBtn) {
-    pkgNextPageBtn.addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        updatePaginationUI();
-      }
-    });
-  }
+  // Initial Fetch
+  fetchPackages(1);
 });

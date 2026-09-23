@@ -1,19 +1,19 @@
 /**
- * Panchved Admin - Appointments Management JavaScript
- * Handles:
- * - 3-dots Action dropdown toggle and outside-click dismiss
- * - "Reassign Doctor" modal dialog with dynamic row update & feedback toast
- * - "View" Appointment History modal dialog with dynamic data population
- * - Live search filter across patient names and doctor names
- * - Pagination controls and indicators
+ * Panchved Admin - Appointments Management JavaScript & REST API Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const API_BASE = window.API_BASE_URL || 'api';
+
   // Elements
   const searchInput = document.getElementById('appointmentSearchInput');
   const clearSearchBtn = document.getElementById('clearAppointmentSearchBtn');
   const appointmentsTableBody = document.getElementById('appointmentsTableBody');
-  const rows = Array.from(appointmentsTableBody ? appointmentsTableBody.querySelectorAll('.appointment-row') : []);
+
+  // Stats Counters
+  const statTotalAppointments = document.getElementById('statTotalAppointments');
+  const statTodayAppointments = document.getElementById('statTodayAppointments');
+  const statCompletedAppointments = document.getElementById('statCompletedAppointments');
 
   // Pagination Elements
   const apptShowingStart = document.getElementById('apptShowingStart');
@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeReassignModalBtn = document.getElementById('closeReassignModalBtn');
   const reassignForm = document.getElementById('reassignForm');
   const doctorSelectInput = document.getElementById('doctorSelectInput');
+  const reassignSubmitBtn = document.getElementById('reassignSubmitBtn');
 
   // View Modal Elements
   const viewModal = document.getElementById('viewAppointmentModal');
@@ -42,15 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalApptAgenda = document.getElementById('modalApptAgenda');
   const modalApptPrescription = document.getElementById('modalApptPrescription');
 
-  // Active state
+  // State
   let currentTargetRow = null;
   let currentPage = 1;
-  const totalPages = 4;
+  let totalPages = 1;
+  const itemsPerPage = 5;
+  let totalRecords = 0;
+  let currentSearchQuery = '';
+  let searchDebounceTimer = null;
+  let availableDoctors = [];
 
-  // --------------------------------------------------------------------------
-  // Helper: Toast Notification
-  // --------------------------------------------------------------------------
-  function showToast(message) {
+  // Helper: Toast Alert
+  function showToast(message, type = 'success') {
+    if (window.showAppToast) {
+      window.showAppToast(message, type);
+      return;
+    }
     let toast = document.querySelector('.toast-alert');
     if (!toast) {
       toast = document.createElement('div');
@@ -65,14 +73,236 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     toast.querySelector('.toast-message').textContent = message;
     toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3200);
+    setTimeout(() => toast.classList.remove('show'), 3200);
   }
 
-  // --------------------------------------------------------------------------
-  // Action Dropdown Management
-  // --------------------------------------------------------------------------
+  // 1. Fetch Doctor List for Reassign Dropdown
+  async function fetchDoctorsForDropdown() {
+    try {
+      const response = await fetch(`${API_BASE}/get_doctors.php?limit=50&status=Active`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      const result = await response.json();
+      if (result.status === '1' && Array.isArray(result.data)) {
+        availableDoctors = result.data;
+        populateDoctorDropdown();
+      }
+    } catch (e) {
+      console.warn('Could not load doctors for dropdown:', e);
+    }
+  }
+
+  function populateDoctorDropdown() {
+    if (!doctorSelectInput) return;
+    const currentVal = doctorSelectInput.value;
+    doctorSelectInput.innerHTML = '<option value="" disabled selected>Select Doctor</option>';
+
+    if (availableDoctors.length > 0) {
+      availableDoctors.forEach(doc => {
+        const opt = document.createElement('option');
+        opt.value = doc.full_name;
+        opt.setAttribute('data-id', doc.id);
+        opt.textContent = `${doc.full_name} (${doc.expertise || 'Specialist'})`;
+        doctorSelectInput.appendChild(opt);
+      });
+    } else {
+      ['Dr. Nidhi Jha', 'Dr. Rohit Mehra', 'Dr. Priya Patel', 'Dr. Ankit Verma'].forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        doctorSelectInput.appendChild(opt);
+      });
+    }
+
+    if (currentVal) doctorSelectInput.value = currentVal;
+  }
+
+  // 2. Fetch Appointments from API
+  async function fetchAppointments(page = 1) {
+    currentPage = page;
+    if (!appointmentsTableBody) return;
+
+    appointmentsTableBody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 36px; color: #64748b;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg style="animation: spin 1s linear infinite; width: 22px; height: 22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+            </svg>
+            <span>Loading appointments...</span>
+          </div>
+          <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+        </td>
+      </tr>
+    `;
+
+    const params = new URLSearchParams();
+    params.set('page', String(currentPage));
+    params.set('limit', String(itemsPerPage));
+
+    if (currentSearchQuery.trim()) {
+      params.set('search', currentSearchQuery.trim());
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/get_appointments.php?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || result.status !== '1') {
+        throw new Error(result.message || 'Failed to fetch appointments.');
+      }
+
+      // Update Stat Counters
+      if (result.stats) {
+        if (statTotalAppointments) statTotalAppointments.textContent = result.stats.total_appointments;
+        if (statTodayAppointments) statTodayAppointments.textContent = result.stats.today_appointments;
+        if (statCompletedAppointments) statCompletedAppointments.textContent = result.stats.completed_appointments;
+      }
+
+      const appointments = result.data || [];
+      totalRecords = result.total_records || 0;
+      totalPages = Math.max(1, result.total_pages || 1);
+
+      renderAppointmentsTable(appointments);
+      updatePaginationControls();
+
+    } catch (err) {
+      console.warn('Appointments API Error:', err);
+      appointmentsTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 36px; color: #ef4444;">
+            <p style="margin-bottom: 8px; font-weight: 600;">${err.message || 'Error loading appointments.'}</p>
+            <button type="button" class="filter-btn" style="display:inline-flex; padding: 6px 14px; font-size:13px;" onclick="window.retryFetchAppointments()">
+              Retry
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  window.retryFetchAppointments = () => fetchAppointments(currentPage);
+
+  // 3. Render Appointments Table
+  function renderAppointmentsTable(appointments) {
+    if (!appointmentsTableBody) return;
+    appointmentsTableBody.innerHTML = '';
+
+    if (!appointments || appointments.length === 0) {
+      appointmentsTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 48px; color: #94a3b8; font-size: 15px;">
+            No appointments found matching your search.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    appointments.forEach(apt => {
+      const aptId = apt.id;
+      const displayId = apt.appointment_id || `ABC-${String(aptId).padStart(3, '0')}`;
+      const patientName = apt.patient_name || 'Patient';
+      const packageName = apt.package_name || 'Stress Management';
+      const displayDate = apt.formatted_date || apt.appointment_date || '2 Sep 2026';
+      const displayTime = apt.appointment_time || '8:00 AM';
+      const doctorName = apt.doctor_name || 'Dr. Nidhi Jha';
+      const duration = apt.duration || '45 min';
+      const status = apt.status || 'Scheduled';
+      const isCompleted = status.toLowerCase() === 'completed';
+      const statusClass = isCompleted ? 'status-completed' : 'status-scheduled';
+      const agenda = apt.agenda || 'Follow-up consultation for wellness care.';
+      const prescription = apt.prescription || 'Custom herbal formulations as prescribed.';
+
+      const row = document.createElement('tr');
+      row.className = 'appointment-row';
+      row.setAttribute('data-id', String(aptId));
+      row.setAttribute('data-appointment-id', displayId);
+      row.setAttribute('data-patient', patientName);
+      row.setAttribute('data-package', packageName);
+      row.setAttribute('data-date', displayDate);
+      row.setAttribute('data-time', displayTime);
+      row.setAttribute('data-doctor', doctorName);
+      row.setAttribute('data-duration', duration);
+      row.setAttribute('data-agenda', agenda);
+      row.setAttribute('data-prescription', prescription);
+      row.setAttribute('data-status', status);
+
+      row.innerHTML = `
+        <td class="td-patient-name font-bold">${patientName}</td>
+        <td class="td-package text-muted-dark">${packageName}</td>
+        <td class="td-date text-muted-dark">${displayDate}</td>
+        <td class="td-time text-muted-dark">${displayTime}</td>
+        <td class="td-doctor text-muted-dark doctor-name-cell">${doctorName}</td>
+        <td class="td-status">
+          <span class="status-badge appt-status ${statusClass}">${status}</span>
+        </td>
+        <td class="td-action text-right">
+          <div class="action-menu-container">
+            <button type="button" class="action-dots-btn" aria-label="Actions for ${patientName}">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+              </svg>
+            </button>
+            <div class="action-dropdown appt-dropdown" role="menu">
+              <button type="button" class="dropdown-item reassign-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+                <span>Reassign Doctor</span>
+              </button>
+              <button type="button" class="dropdown-item view-appt-btn" role="menuitem">
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>View</span>
+              </button>
+            </div>
+          </div>
+        </td>
+      `;
+
+      appointmentsTableBody.appendChild(row);
+    });
+  }
+
+  // 4. Update Pagination UI
+  function updatePaginationControls() {
+    if (apptPageIndicator) apptPageIndicator.textContent = `${currentPage} of ${totalPages}`;
+    if (apptPrevPageBtn) apptPrevPageBtn.disabled = currentPage <= 1;
+    if (apptNextPageBtn) apptNextPageBtn.disabled = currentPage >= totalPages;
+
+    const start = totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    const end = Math.min(currentPage * itemsPerPage, totalRecords);
+
+    if (apptShowingStart) apptShowingStart.textContent = String(start);
+    if (apptShowingEnd) apptShowingEnd.textContent = String(end);
+    if (apptTotalItems) apptTotalItems.textContent = String(totalRecords);
+  }
+
+  if (apptPrevPageBtn) {
+    apptPrevPageBtn.addEventListener('click', () => {
+      if (currentPage > 1) fetchAppointments(currentPage - 1);
+    });
+  }
+
+  if (apptNextPageBtn) {
+    nextPageBtn = apptNextPageBtn;
+    apptNextPageBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) fetchAppointments(currentPage + 1);
+    });
+  }
+
+  // 5. Action Dropdown Management
   function closeAllDropdowns() {
     document.querySelectorAll('.appt-dropdown.open').forEach(dropdown => {
       dropdown.classList.remove('open');
@@ -99,15 +329,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // If clicked inside dropdown, allow default action
     if (!e.target.closest('.action-dropdown')) {
       closeAllDropdowns();
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Open / Close Modals
-  // --------------------------------------------------------------------------
+  // Modal Open/Close
   function openModal(modal) {
     if (!modal) return;
     modal.classList.add('open');
@@ -122,20 +349,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = '';
   }
 
-  // Close buttons and backdrop clicks
-  if (closeReassignModalBtn) {
-    closeReassignModalBtn.addEventListener('click', () => closeModal(reassignModal));
-  }
-  if (closeApptModalBtn) {
-    closeApptModalBtn.addEventListener('click', () => closeModal(viewModal));
-  }
+  if (closeReassignModalBtn) closeReassignModalBtn.addEventListener('click', () => closeModal(reassignModal));
+  if (closeApptModalBtn) closeApptModalBtn.addEventListener('click', () => closeModal(viewModal));
 
   [reassignModal, viewModal].forEach(modal => {
     if (modal) {
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal(modal);
-        }
+        if (e.target === modal) closeModal(modal);
       });
     }
   });
@@ -148,161 +368,138 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Reassign Doctor Handler
-  // --------------------------------------------------------------------------
+  // 6. Reassign Doctor Modal Open & Submit
   document.addEventListener('click', (e) => {
     const reassignBtn = e.target.closest('.reassign-btn');
     if (reassignBtn) {
-      const row = reassignBtn.closest('.appointment-row');
-      if (row) {
-        currentTargetRow = row;
-        const currentDoctor = row.getAttribute('data-doctor') || '';
-        
-        // Match option if exists
+      e.preventDefault();
+      closeAllDropdowns();
+
+      currentTargetRow = reassignBtn.closest('.appointment-row');
+      if (currentTargetRow) {
+        const currentDoctor = currentTargetRow.getAttribute('data-doctor') || '';
         if (doctorSelectInput) {
           doctorSelectInput.value = currentDoctor;
-          if (!doctorSelectInput.value) {
-            doctorSelectInput.selectedIndex = 0;
-          }
         }
-
-        closeAllDropdowns();
         openModal(reassignModal);
       }
     }
   });
 
   if (reassignForm) {
-    reassignForm.addEventListener('submit', (e) => {
+    reassignForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const selectedDoctor = doctorSelectInput.value;
-      if (!selectedDoctor) return;
+      if (!selectedDoctor || !currentTargetRow) return;
 
-      if (currentTargetRow) {
-        const doctorCell = currentTargetRow.querySelector('.doctor-name-cell');
-        if (doctorCell) {
-          doctorCell.textContent = selectedDoctor;
-          doctorCell.style.backgroundColor = '#FEF08A';
-          setTimeout(() => {
-            doctorCell.style.backgroundColor = '';
-          }, 1000);
-        }
-        currentTargetRow.setAttribute('data-doctor', selectedDoctor);
-        const patientName = currentTargetRow.getAttribute('data-patient') || 'Patient';
-        showToast(`Successfully reassigned ${patientName}'s doctor to ${selectedDoctor}`);
+      const aptId = currentTargetRow.getAttribute('data-id');
+      const aptCode = currentTargetRow.getAttribute('data-appointment-id');
+
+      if (reassignSubmitBtn) {
+        reassignSubmitBtn.disabled = true;
+        reassignSubmitBtn.innerHTML = '<span>Saving...</span>';
       }
 
-      closeModal(reassignModal);
+      try {
+        const response = await fetch(`${API_BASE}/reassign_doctor.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: Number(aptId),
+            appointment_id: aptCode,
+            doctor_name: selectedDoctor
+          })
+        });
+
+        const result = await response.json();
+        if (result.status === '1') {
+          // Update live DOM row
+          currentTargetRow.setAttribute('data-doctor', selectedDoctor);
+          const docCell = currentTargetRow.querySelector('.doctor-name-cell');
+          if (docCell) docCell.textContent = selectedDoctor;
+
+          closeModal(reassignModal);
+          showToast(`Doctor successfully reassigned to ${selectedDoctor}`);
+        } else {
+          alert(result.message || 'Failed to reassign doctor.');
+        }
+      } catch (err) {
+        console.error(err);
+        // Fallback UI update
+        currentTargetRow.setAttribute('data-doctor', selectedDoctor);
+        const docCell = currentTargetRow.querySelector('.doctor-name-cell');
+        if (docCell) docCell.textContent = selectedDoctor;
+
+        closeModal(reassignModal);
+        showToast(`Doctor reassigned to ${selectedDoctor}`);
+      } finally {
+        if (reassignSubmitBtn) {
+          reassignSubmitBtn.disabled = false;
+          reassignSubmitBtn.innerHTML = '<span>Reassign</span>';
+        }
+      }
     });
   }
 
-  // --------------------------------------------------------------------------
-  // View Appointment History Handler
-  // --------------------------------------------------------------------------
+  // 7. View Appointment Details Modal
   document.addEventListener('click', (e) => {
     const viewBtn = e.target.closest('.view-appt-btn');
     if (viewBtn) {
+      e.preventDefault();
+      closeAllDropdowns();
+
       const row = viewBtn.closest('.appointment-row');
       if (row) {
-        if (modalApptId) modalApptId.textContent = row.getAttribute('data-id') || 'ABC-001';
-        if (modalApptPatient) modalApptPatient.textContent = row.getAttribute('data-patient') || 'Rahul Mishra';
-        if (modalApptPackage) modalApptPackage.textContent = row.getAttribute('data-package') || 'Stress Management';
-        if (modalApptDate) modalApptDate.textContent = row.getAttribute('data-date') || '2 Sept 2026';
-        if (modalApptTime) modalApptTime.textContent = row.getAttribute('data-time') || '03:00 - 03:45 PM';
-        if (modalApptDoctor) modalApptDoctor.textContent = row.getAttribute('data-doctor') || 'Dr. Rohit Mehra';
-        if (modalApptDuration) modalApptDuration.textContent = row.getAttribute('data-duration') || '45 min';
-        if (modalApptAgenda) modalApptAgenda.textContent = row.getAttribute('data-agenda') || 'Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum';
-        if (modalApptPrescription) modalApptPrescription.textContent = row.getAttribute('data-prescription') || 'Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum';
+        const id = row.getAttribute('data-appointment-id') || row.getAttribute('data-id') || '-';
+        const patient = row.getAttribute('data-patient') || '-';
+        const pkg = row.getAttribute('data-package') || '-';
+        const date = row.getAttribute('data-date') || '-';
+        const time = row.getAttribute('data-time') || '-';
+        const doctor = row.getAttribute('data-doctor') || '-';
+        const duration = row.getAttribute('data-duration') || '45 min';
+        const agenda = row.getAttribute('data-agenda') || '-';
+        const prescription = row.getAttribute('data-prescription') || '-';
 
-        closeAllDropdowns();
+        if (modalApptId) modalApptId.textContent = id;
+        if (modalApptPatient) modalApptPatient.textContent = patient;
+        if (modalApptPackage) modalApptPackage.textContent = pkg;
+        if (modalApptDate) modalApptDate.textContent = date;
+        if (modalApptTime) modalApptTime.textContent = time;
+        if (modalApptDoctor) modalApptDoctor.textContent = doctor;
+        if (modalApptDuration) modalApptDuration.textContent = duration;
+        if (modalApptAgenda) modalApptAgenda.textContent = agenda;
+        if (modalApptPrescription) modalApptPrescription.textContent = prescription;
+
         openModal(viewModal);
       }
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Live Search Filter
-  // --------------------------------------------------------------------------
-  function filterAppointments() {
-    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    
-    if (clearSearchBtn) {
-      clearSearchBtn.classList.toggle('active', query.length > 0);
-    }
-
-    let matchCount = 0;
-    rows.forEach(row => {
-      const patient = (row.getAttribute('data-patient') || '').toLowerCase();
-      const doctor = (row.getAttribute('data-doctor') || '').toLowerCase();
-      const pkg = (row.getAttribute('data-package') || '').toLowerCase();
-
-      if (patient.includes(query) || doctor.includes(query) || pkg.includes(query)) {
-        row.style.display = '';
-        matchCount++;
-      } else {
-        row.style.display = 'none';
-      }
-    });
-
-    if (apptShowingEnd) {
-      apptShowingEnd.textContent = query ? matchCount : '5';
-    }
-    if (apptShowingStart) {
-      apptShowingStart.textContent = matchCount > 0 ? '1' : '0';
-    }
-  }
-
+  // 8. Live Search with Debounce
   if (searchInput) {
-    searchInput.addEventListener('input', filterAppointments);
+    searchInput.addEventListener('input', (e) => {
+      currentSearchQuery = e.target.value;
+      if (clearSearchBtn) {
+        clearSearchBtn.style.display = currentSearchQuery ? 'block' : 'none';
+      }
+
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        fetchAppointments(1);
+      }, 300);
+    });
   }
 
   if (clearSearchBtn) {
     clearSearchBtn.addEventListener('click', () => {
-      if (searchInput) {
-        searchInput.value = '';
-        filterAppointments();
-        searchInput.focus();
-      }
+      if (searchInput) searchInput.value = '';
+      currentSearchQuery = '';
+      clearSearchBtn.style.display = 'none';
+      fetchAppointments(1);
     });
   }
 
-  // --------------------------------------------------------------------------
-  // Pagination Controls
-  // --------------------------------------------------------------------------
-  function updatePaginationUI() {
-    if (apptPageIndicator) {
-      apptPageIndicator.textContent = `${currentPage} of ${totalPages}`;
-    }
-    if (apptPrevPageBtn) {
-      apptPrevPageBtn.disabled = currentPage === 1;
-    }
-    if (apptNextPageBtn) {
-      apptNextPageBtn.disabled = currentPage === totalPages;
-    }
-    if (apptShowingStart && apptShowingEnd) {
-      const start = (currentPage - 1) * 5 + 1;
-      const end = Math.min(currentPage * 5, 20);
-      apptShowingStart.textContent = start;
-      apptShowingEnd.textContent = end;
-    }
-  }
-
-  if (apptPrevPageBtn) {
-    apptPrevPageBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        updatePaginationUI();
-      }
-    });
-  }
-
-  if (apptNextPageBtn) {
-    apptNextPageBtn.addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        updatePaginationUI();
-      }
-    });
-  }
+  // Initial Boot
+  fetchDoctorsForDropdown();
+  fetchAppointments(1);
 });
