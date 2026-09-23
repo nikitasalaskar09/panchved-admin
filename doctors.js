@@ -3,6 +3,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Backend API Base URL
+  const API_BASE_URL = window.API_BASE_URL || 'https://digitalbolt.co/nikita/panchved-admin/api';
+
   // View Containers
   const doctorsListView = document.getElementById('doctorsListView');
   const addDoctorView = document.getElementById('addDoctorView');
@@ -192,9 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     try {
-      const response = await fetch(`api/get_doctors.php?${queryParams.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}/get_doctors.php?${queryParams.toString()}`, {
         method: 'GET',
-        credentials: 'include',
+        mode: 'cors',
         headers: {
           'Accept': 'application/json'
         }
@@ -408,9 +411,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const statusBadge = row.querySelector('.doc-status');
 
       try {
-        const response = await fetch('api/change_doctor_status.php', {
+        const response = await fetch(`${API_BASE_URL}/change_doctor_status.php`, {
           method: 'POST',
-          credentials: 'include',
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -455,9 +458,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const response = await fetch('api/delete_doctor.php', {
+        const response = await fetch(`${API_BASE_URL}/delete_doctor.php`, {
           method: 'POST',
-          credentials: 'include',
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -509,7 +512,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Fetch fresh doctor details from API
         try {
-          const res = await fetch(`api/get_doctor.php?id=${docId}`, { credentials: 'include' });
+          const res = await fetch(`${API_BASE_URL}/get_doctor.php?id=${docId}`, {
+            method: 'GET',
+            mode: 'cors',
+            headers: { 'Accept': 'application/json' }
+          });
           const data = await res.json();
           if (data.status === '1' && data.data) {
             const d = data.data;
@@ -555,7 +562,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Fetch single doctor info including appointment count
         try {
-          const res = await fetch(`api/get_doctor.php?id=${docId}`, { credentials: 'include' });
+          const res = await fetch(`${API_BASE_URL}/get_doctor.php?id=${docId}`, {
+            method: 'GET',
+            mode: 'cors',
+            headers: { 'Accept': 'application/json' }
+          });
           const resData = await res.json();
           if (resData.status === '1' && resData.data) {
             const d = resData.data;
@@ -652,9 +663,9 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const response = await fetch('api/add_doctors.php', {
+        const response = await fetch(`${API_BASE_URL}/add_doctors.php`, {
           method: 'POST',
-          credentials: 'include',
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -727,9 +738,9 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const response = await fetch('api/update_doctor.php', {
+        const response = await fetch(`${API_BASE_URL}/update_doctor.php`, {
           method: 'POST',
-          credentials: 'include',
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
