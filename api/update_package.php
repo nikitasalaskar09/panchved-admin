@@ -35,6 +35,7 @@ if ($id <= 0 && $package_id === '') {
 
 $package_name = trim((string) ($data['package_name'] ?? $data['name'] ?? ''));
 $category = trim((string) ($data['category'] ?? ''));
+$assigned_doctor = isset($data['assigned_doctor']) ? trim((string)$data['assigned_doctor']) : (isset($data['assign_doctor']) ? trim((string)$data['assign_doctor']) : (isset($data['editPkgDoctor']) ? trim((string)$data['editPkgDoctor']) : null));
 $duration = trim((string) ($data['duration'] ?? ''));
 $price_raw = isset($data['price']) ? preg_replace('/[^\d.]/', '', (string) $data['price']) : null;
 $short_description = trim((string) ($data['short_description'] ?? ''));
@@ -49,12 +50,43 @@ $patient_monitoring = trim((string) ($data['patient_monitoring'] ?? ''));
 $followup_review = trim((string) ($data['followup_review'] ?? ''));
 $status = trim((string) ($data['status'] ?? ''));
 
+// Ensure assigned_doctor column exists
+if ($connection1 && $assigned_doctor !== null) {
+    $col_res = @mysqli_query($connection1, "SHOW COLUMNS FROM packages");
+    $existing_cols = [];
+    if ($col_res) {
+        while ($col_row = mysqli_fetch_assoc($col_res)) {
+            $existing_cols[] = $col_row['Field'];
+        }
+    }
+    if (!in_array('assigned_doctor', $existing_cols) && !in_array('assign_doctor', $existing_cols)) {
+        @mysqli_query($connection1, "ALTER TABLE packages ADD COLUMN `assigned_doctor` VARCHAR(150) NULL DEFAULT 'Dr. Nidhi Jha' AFTER `category`");
+    }
+}
+
+// Check which column name exists
+$has_assign_doctor = false;
+$has_assigned_doctor = false;
+if ($connection1) {
+    $col_res2 = @mysqli_query($connection1, "SHOW COLUMNS FROM packages");
+    if ($col_res2) {
+        while ($c = mysqli_fetch_assoc($col_res2)) {
+            if ($c['Field'] === 'assigned_doctor') $has_assigned_doctor = true;
+            if ($c['Field'] === 'assign_doctor') $has_assign_doctor = true;
+        }
+    }
+}
+$doc_column = $has_assign_doctor ? 'assign_doctor' : 'assigned_doctor';
+
 $update_fields = [];
 $params = [];
 $types = '';
 
 if ($package_name !== '') { $update_fields[] = "package_name = ?"; $params[] = $package_name; $types .= 's'; }
 if ($category !== '') { $update_fields[] = "category = ?"; $params[] = $category; $types .= 's'; }
+if ($assigned_doctor !== null && ($has_assigned_doctor || $has_assign_doctor)) {
+    $update_fields[] = "`{$doc_column}` = ?"; $params[] = $assigned_doctor; $types .= 's';
+}
 if ($duration !== '') { $update_fields[] = "duration = ?"; $params[] = $duration; $types .= 's'; }
 if ($price_raw !== null && $price_raw !== '') { $update_fields[] = "price = ?"; $params[] = floatval($price_raw); $types .= 'd'; }
 if ($short_description !== '') { $update_fields[] = "short_description = ?"; $params[] = $short_description; $types .= 's'; }
@@ -98,10 +130,19 @@ mysqli_stmt_bind_param($stmt, $types, ...$params);
 
 if (mysqli_stmt_execute($stmt)) {
     mysqli_stmt_close($stmt);
-    echo json_encode(['status' => '1', 'message' => 'Package updated successfully.']);
+    echo json_encode([
+        'status' => '1',
+        'message' => 'Package updated successfully.',
+        'data' => [
+            'id' => $id,
+            'package_id' => $package_id,
+            'assigned_doctor' => $assigned_doctor
+        ]
+    ]);
 } else {
     $err = mysqli_stmt_error($stmt);
     mysqli_stmt_close($stmt);
     http_response_code(500);
     echo json_encode(['status' => '0', 'message' => 'Failed to update package.', 'error' => $err]);
 }
+?>

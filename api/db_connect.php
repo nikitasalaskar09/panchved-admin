@@ -19,9 +19,11 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
 
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
 // Fast return on preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
     }
@@ -103,4 +105,5 @@ if (!$connection1 || !($connection1 instanceof mysqli)) {
 }
 
 @mysqli_set_charset($connection1, 'utf8mb4');
+$GLOBALS['connection1'] = $connection1;
 ?>

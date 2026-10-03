@@ -72,10 +72,20 @@ if ($status !== '' && strtolower($status) !== 'all') {
     }
 }
 
-if ($expertise !== '') {
-    $where_clauses[] = "expertise LIKE ?";
-    $params[] = '%' . $expertise . '%';
-    $types .= 's';
+if ($expertise !== '' && strtolower($expertise) !== 'all') {
+    if (strpos($expertise, ',') !== false) {
+        $expertises = array_map('trim', explode(',', $expertise));
+        $placeholders = implode(',', array_fill(0, count($expertises), '?'));
+        $where_clauses[] = "expertise IN ($placeholders)";
+        foreach ($expertises as $exp) {
+            $params[] = $exp;
+            $types .= 's';
+        }
+    } else {
+        $where_clauses[] = "expertise LIKE ?";
+        $params[] = '%' . $expertise . '%';
+        $types .= 's';
+    }
 }
 
 $where_sql = '';
@@ -223,7 +233,53 @@ if ($data_result) {
 }
 
 mysqli_stmt_close($data_stmt);
-mysqli_close($connection1);
+
+/* =========================================
+   DYNAMIC FILTER OPTIONS
+========================================= */
+$available_statuses = [];
+if ($connection1) {
+    $st_res = @mysqli_query($connection1, "
+        SELECT DISTINCT status FROM doctors WHERE status IS NOT NULL AND TRIM(status) != ''
+        ORDER BY status ASC
+    ");
+    if ($st_res) {
+        while ($sRow = mysqli_fetch_assoc($st_res)) {
+            if (!empty($sRow['status'])) {
+                $available_statuses[] = $sRow['status'];
+            }
+        }
+    }
+}
+if (empty($available_statuses)) {
+    $available_statuses = ['Active', 'Inactive'];
+}
+
+$available_expertises = [];
+if ($connection1) {
+    $exp_res = @mysqli_query($connection1, "
+        SELECT DISTINCT expertise FROM doctors WHERE expertise IS NOT NULL AND TRIM(expertise) != ''
+        ORDER BY expertise ASC
+    ");
+    if ($exp_res) {
+        $raw_expertises = [];
+        while ($eRow = mysqli_fetch_assoc($exp_res)) {
+            $raw_val = trim($eRow['expertise'] ?? '');
+            if ($raw_val !== '') {
+                $parts = explode(',', $raw_val);
+                foreach ($parts as $p) {
+                    $p = trim($p);
+                    if ($p !== '' && !in_array($p, $raw_expertises, true)) {
+                        $raw_expertises[] = $p;
+                    }
+                }
+            }
+        }
+        sort($raw_expertises, SORT_NATURAL | SORT_FLAG_CASE);
+        $available_expertises = array_values($raw_expertises);
+    }
+}
+
 
 /* =========================================
    OUTPUT JSON RESPONSE
@@ -237,6 +293,10 @@ echo json_encode([
     'limit' => $limit,
     'total_records' => $total_records,
     'total_pages' => $total_pages,
-    'data' => $doctors
+    'data' => $doctors,
+    'filter_options' => [
+        'statuses' => $available_statuses,
+        'expertises' => $available_expertises
+    ]
 ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 ?>

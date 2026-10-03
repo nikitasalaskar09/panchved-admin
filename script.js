@@ -189,4 +189,63 @@ document.addEventListener('DOMContentLoaded', () => {
       errorElement.classList.remove('active');
     }
   }
+
+  // 4. Forgot Password & Legal Links Click Handlers
+  const placeholderLinks = document.querySelectorAll('.forgot-password-link, .legal-link, a[href="#forgot-password"], a[href="#terms"], a[href="#privacy"]');
+  placeholderLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      showSnackbar('This feature will be available soon');
+    });
+  });
+
+  function showSnackbar(message) {
+    if (window.showSnackbar) {
+      window.showSnackbar(message);
+      return;
+    }
+
+    let existingSnackbar = document.querySelector('.app-snackbar');
+    if (existingSnackbar) existingSnackbar.remove();
+
+    const snackbar = document.createElement('div');
+    snackbar.className = 'app-snackbar';
+    snackbar.innerHTML = `
+      <div class="snackbar-icon">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+      </div>
+      <span class="snackbar-text">${message}</span>
+      <button type="button" class="snackbar-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    `;
+
+    document.body.appendChild(snackbar);
+
+    requestAnimationFrame(() => {
+      snackbar.classList.add('show');
+    });
+
+    const closeBtn = snackbar.querySelector('.snackbar-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        snackbar.classList.remove('show');
+        setTimeout(() => snackbar.remove(), 250);
+      });
+    }
+
+    setTimeout(() => {
+      if (snackbar.parentElement) {
+        snackbar.classList.remove('show');
+        setTimeout(() => snackbar.remove(), 250);
+      }
+    }, 4000);
+  }
 });

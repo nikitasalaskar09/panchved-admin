@@ -1,13 +1,22 @@
 <?php
 /**
  * Panchved Admin - Get Single Package Details API
- * GET: /api/get_package.php?id=1 or ?package_id=PKG-001
+ * GET/POST: /api/get_package.php?id=1 or ?package_id=PKG-001
  */
 
 require_once __DIR__ . '/db_connect.php';
 
-$id = intval($_GET['id'] ?? 0);
-$package_id = trim((string) ($_GET['package_id'] ?? ''));
+$raw_input = file_get_contents('php://input');
+$body_data = [];
+if ($raw_input !== false && trim($raw_input) !== '') {
+    $decoded = json_decode($raw_input, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        $body_data = $decoded;
+    }
+}
+
+$id = intval($_GET['id'] ?? $_POST['id'] ?? $body_data['id'] ?? 0);
+$package_id = trim((string) ($_GET['package_id'] ?? $_POST['package_id'] ?? $body_data['package_id'] ?? ''));
 
 if ($id <= 0 && $package_id === '') {
     http_response_code(400);
@@ -45,12 +54,19 @@ if ($connection1) {
 
 if (!$package) {
     http_response_code(404);
-    echo json_encode(['status' => '0', 'message' => 'Package not found.']);
+    echo json_encode(['status' => '0', 'message' => 'Package not found in database.']);
     exit;
+}
+
+if (empty($package['assigned_doctor'])) {
+    $package['assigned_doctor'] = $package['assign_doctor'] ?? '-';
+}
+if (empty($package['assign_doctor'])) {
+    $package['assign_doctor'] = $package['assigned_doctor'];
 }
 
 echo json_encode([
     'status' => '1',
-    'message' => 'Package details fetched successfully.',
+    'message' => 'Package details fetched successfully from SQL database.',
     'data' => $package
 ]);

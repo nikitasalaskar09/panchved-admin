@@ -165,6 +165,17 @@
   box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
 }
 
+/* For bottom rows, open dropdown upwards so it never pushes or creates extra space below */
+.appt-dropdown.dropup {
+  top: auto !important;
+  bottom: calc(100% + 6px) !important;
+  transform: translateY(4px);
+}
+
+.appt-dropdown.dropup.open {
+  transform: translateY(0) !important;
+}
+
 .appt-dropdown .dropdown-item {
   display: flex;
   align-items: center;

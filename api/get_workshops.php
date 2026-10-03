@@ -23,6 +23,12 @@ if ($raw_input !== false && trim($raw_input) !== '') {
 
 $search = trim((string) ($_GET['search'] ?? $body_data['search'] ?? ''));
 $status = trim((string) ($_GET['status'] ?? $body_data['status'] ?? ''));
+$attendee = trim((string) ($_GET['attendee'] ?? $_GET['attendee_type'] ?? $body_data['attendee'] ?? $body_data['attendee_type'] ?? ''));
+$role = trim((string) ($_GET['role'] ?? $body_data['role'] ?? ''));
+if ($attendee === '' && $role !== '') {
+    if (strcasecmp($role, 'doctor') === 0) $attendee = 'Doctor';
+    if (strcasecmp($role, 'patient') === 0) $attendee = 'Patient';
+}
 $page = max(1, intval($_GET['page'] ?? $body_data['page'] ?? 1));
 $limit = max(1, intval($_GET['limit'] ?? $body_data['limit'] ?? 5));
 $offset = ($page - 1) * $limit;
@@ -33,19 +39,46 @@ $stat_upcoming = 0;
 $stat_past = 0;
 
 if ($connection1) {
+    // 1. Total Workshops
     $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops");
-    if ($res && $row = mysqli_fetch_assoc($res)) { $stat_total = (int)$row['total']; }
+    if ($res && $row = mysqli_fetch_assoc($res)) {
+        $stat_total = (int)$row['total'];
+    }
 
-    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops WHERE status = 'Upcoming' OR date >= CURDATE()");
-    if ($res && $row = mysqli_fetch_assoc($res)) { $stat_upcoming = (int)$row['total']; }
+    // 2. Upcoming Workshops
+    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops WHERE status = 'Upcoming' OR (status NOT IN ('Completed', 'Past', 'Cancelled') AND date >= CURDATE())");
+    if ($res && $row = mysqli_fetch_assoc($res)) {
+        $stat_upcoming = (int)$row['total'];
+    }
 
-    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops WHERE status IN ('Completed', 'Past') OR date < CURDATE()");
-    if ($res && $row = mysqli_fetch_assoc($res)) { $stat_past = (int)$row['total']; }
+    // 3. Past / Completed Workshops
+    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops WHERE status IN ('Completed', 'Past') OR (status NOT IN ('Upcoming') AND date < CURDATE())");
+    if ($res && $row = mysqli_fetch_assoc($res)) {
+        $stat_past = (int)$row['total'];
+    }
 }
 
-if ($stat_total === 0) $stat_total = 12;
-if ($stat_upcoming === 0) $stat_upcoming = 6;
-if ($stat_past === 0) $stat_past = 6;
+// Check / Ensure columns exist in workshops table
+$existing_columns = [];
+if ($connection1) {
+    $columns_res = @mysqli_query($connection1, "SHOW COLUMNS FROM workshops");
+    if ($columns_res) {
+        while ($col = mysqli_fetch_assoc($columns_res)) {
+            $existing_columns[] = strtolower($col['Field']);
+        }
+    }
+    if (!empty($existing_columns)) {
+        if (!in_array('subtitle', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE workshops ADD COLUMN `subtitle` VARCHAR(255) NULL AFTER `title`");
+        }
+        if (!in_array('assign_speaker', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE workshops ADD COLUMN `assign_speaker` VARCHAR(150) NULL AFTER `speaker`");
+        }
+        if (!in_array('meet_link', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE workshops ADD COLUMN `meet_link` VARCHAR(255) NULL AFTER `assign_speaker`");
+        }
+    }
+}
 
 $where_clauses = [];
 $params = [];
@@ -57,10 +90,12 @@ if ($search !== '') {
         workshop_id LIKE ? OR
         instructor LIKE ? OR
         speaker LIKE ? OR
+        assign_speaker LIKE ? OR
+        subtitle LIKE ? OR
         attendee_type LIKE ?
     )";
     $search_param = '%' . $search . '%';
-    for ($i = 0; $i < 5; $i++) {
+    for ($i = 0; $i < 7; $i++) {
         $params[] = $search_param;
         $types .= 's';
     }
@@ -80,6 +115,13 @@ if ($status !== '' && strtolower($status) !== 'all') {
         $params[] = $status;
         $types .= 's';
     }
+}
+
+if ($attendee !== '' && strtolower($attendee) !== 'all') {
+    $where_clauses[] = "(attendee_type = ? OR attendee_type LIKE ?)";
+    $params[] = $attendee;
+    $params[] = '%' . $attendee . '%';
+    $types .= 'ss';
 }
 
 $where_sql = '';
@@ -112,8 +154,11 @@ $data_sql = "
         id,
         workshop_id,
         title,
+        subtitle,
         instructor,
         speaker,
+        assign_speaker,
+        meet_link,
         attendee_type,
         date,
         time,
@@ -148,119 +193,68 @@ if ($stmt) {
 
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
-            if (!empty($row['date'])) {
-                $row['formatted_date'] = date('j M Y', strtotime($row['date']));
+            $date_raw = trim((string)($row['date'] ?? ''));
+            $valid_date = '';
+
+            if ($date_raw !== '' && $date_raw !== '0000-00-00' && strpos($date_raw, '0000-00-00') !== 0) {
+                $ts = strtotime($date_raw);
+                if ($ts !== false && $ts > 0 && (int)date('Y', $ts) > 1970) {
+                    $valid_date = date('Y-m-d', $ts);
+                } else {
+                    $dcheck = DateTime::createFromFormat('Y-m-d', $date_raw);
+                    if ($dcheck && (int)$dcheck->format('Y') > 1970) {
+                        $valid_date = $dcheck->format('Y-m-d');
+                    } else {
+                        $dcheck2 = DateTime::createFromFormat('d/m/Y', $date_raw);
+                        if ($dcheck2 && (int)$dcheck2->format('Y') > 1970) {
+                            $valid_date = $dcheck2->format('Y-m-d');
+                        }
+                    }
+                }
+            } elseif (!empty($row['created_at']) && strpos($row['created_at'], '0000-00-00') !== 0) {
+                $ts = strtotime($row['created_at']);
+                if ($ts !== false && $ts > 0 && (int)date('Y', $ts) > 1970) {
+                    $valid_date = date('Y-m-d', $ts);
+                }
+            }
+
+            if ($valid_date !== '') {
+                $row['date'] = $valid_date;
+                $row['formatted_date'] = date('j M Y', strtotime($valid_date));
+                $row['form_date'] = $valid_date;
             } else {
-                $row['formatted_date'] = '2 Sep 2026';
+                $row['formatted_date'] = $date_raw;
+                $row['form_date'] = $date_raw;
             }
-            if (empty($row['registrations']) && !empty($row['enrolled'])) {
-                $row['registrations'] = $row['enrolled'];
+            
+            if (!isset($row['subtitle']) || $row['subtitle'] === null) {
+                $row['subtitle'] = '';
             }
-            if (empty($row['fee']) && !empty($row['price'])) {
-                $row['fee'] = $row['price'];
+            if (!isset($row['workshop_subtitle']) || $row['workshop_subtitle'] === null) {
+                $row['workshop_subtitle'] = $row['subtitle'];
+            }
+            if (empty($row['assign_speaker'])) {
+                $row['assign_speaker'] = $row['speaker'] ?? ($row['instructor'] ?? '');
+            }
+            if (!isset($row['meet_link']) || $row['meet_link'] === null) {
+                $row['meet_link'] = '';
+            }
+
+            if (empty($row['attendee_type'])) {
+                $row['attendee_type'] = 'Doctor';
+            }
+            $row['attendee'] = $row['attendee_type'];
+
+            if (!isset($row['registrations']) || $row['registrations'] === null) {
+                $row['registrations'] = $row['enrolled'] ?? 0;
+            }
+            if (!isset($row['fee']) || $row['fee'] === null) {
+                $row['fee'] = $row['price'] ?? 0;
             }
             $workshops[] = $row;
         }
     }
     mysqli_stmt_close($stmt);
-}
-
-// Fallback seed data if database table is empty
-if (empty($workshops) && $total_records === 0 && $search === '' && $status === '') {
-    $workshops = [
-        [
-            'id' => 1,
-            'workshop_id' => 'WS-001',
-            'title' => 'Ayurveda Wellness Workshop',
-            'instructor' => 'Dr. Nidhi Jha',
-            'speaker' => 'Dr. Nidhi Jha & Team',
-            'attendee_type' => 'Doctor',
-            'date' => '2026-09-02',
-            'formatted_date' => '2 Sep 2026',
-            'time' => '8:00 AM',
-            'location' => 'Panchved Center Hall A',
-            'capacity' => 50,
-            'registrations' => 24,
-            'fee' => '500.00',
-            'about' => 'Comprehensive immersion into clinical Ayurveda protocols, pulse diagnostics, and preventive wellness strategies.',
-            'image_url' => 'assets/package-thumb.jpg',
-            'status' => 'Upcoming'
-        ],
-        [
-            'id' => 2,
-            'workshop_id' => 'WS-002',
-            'title' => 'Ayurveda Wellness Workshop',
-            'instructor' => 'Dr. Rohit Mehra',
-            'speaker' => 'Dr. Rohit Mehra',
-            'attendee_type' => 'Doctor',
-            'date' => '2026-09-02',
-            'formatted_date' => '2 Sep 2026',
-            'time' => '8:00 AM',
-            'location' => 'Panchved Center Hall A',
-            'capacity' => 50,
-            'registrations' => 24,
-            'fee' => '500.00',
-            'about' => 'Comprehensive immersion into clinical Ayurveda protocols, pulse diagnostics, and preventive wellness strategies.',
-            'image_url' => 'assets/package-thumb.jpg',
-            'status' => 'Upcoming'
-        ],
-        [
-            'id' => 3,
-            'workshop_id' => 'WS-003',
-            'title' => 'Ayurveda Wellness Workshop',
-            'instructor' => 'Dr. Priya Patel',
-            'speaker' => 'Dr. Priya Patel',
-            'attendee_type' => 'Doctor',
-            'date' => '2026-09-02',
-            'formatted_date' => '2 Sep 2026',
-            'time' => '8:00 AM',
-            'location' => 'Panchved Center Hall A',
-            'capacity' => 50,
-            'registrations' => 24,
-            'fee' => '500.00',
-            'about' => 'Comprehensive immersion into clinical Ayurveda protocols, pulse diagnostics, and preventive wellness strategies.',
-            'image_url' => 'assets/package-thumb.jpg',
-            'status' => 'Upcoming'
-        ],
-        [
-            'id' => 4,
-            'workshop_id' => 'WS-004',
-            'title' => 'Ayurveda Wellness Workshop',
-            'instructor' => 'Dr. Ankit Verma',
-            'speaker' => 'Dr. Ankit Verma',
-            'attendee_type' => 'Doctor',
-            'date' => '2026-09-02',
-            'formatted_date' => '2 Sep 2026',
-            'time' => '8:00 AM',
-            'location' => 'Panchved Center Hall A',
-            'capacity' => 50,
-            'registrations' => 24,
-            'fee' => '500.00',
-            'about' => 'Comprehensive immersion into clinical Ayurveda protocols, pulse diagnostics, and preventive wellness strategies.',
-            'image_url' => 'assets/package-thumb.jpg',
-            'status' => 'Upcoming'
-        ],
-        [
-            'id' => 5,
-            'workshop_id' => 'WS-005',
-            'title' => 'Ayurveda Wellness Workshop',
-            'instructor' => 'Dr. Nidhi Jha',
-            'speaker' => 'Dr. Nidhi Jha',
-            'attendee_type' => 'Doctor',
-            'date' => '2026-09-02',
-            'formatted_date' => '2 Sep 2026',
-            'time' => '8:00 AM',
-            'location' => 'Panchved Center Hall A',
-            'capacity' => 50,
-            'registrations' => 24,
-            'fee' => '500.00',
-            'about' => 'Comprehensive immersion into clinical Ayurveda protocols, pulse diagnostics, and preventive wellness strategies.',
-            'image_url' => 'assets/package-thumb.jpg',
-            'status' => 'Upcoming'
-        ]
-    ];
-    $total_records = count($workshops);
-    $total_pages = 1;
 }
 
 echo json_encode([
@@ -277,3 +271,4 @@ echo json_encode([
     'limit' => $limit,
     'data' => $workshops
 ]);
+

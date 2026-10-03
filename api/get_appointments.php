@@ -43,10 +43,6 @@ if ($connection1) {
     if ($res && $row = mysqli_fetch_assoc($res)) { $stat_completed = (int)$row['total']; }
 }
 
-if ($stat_total === 0) $stat_total = 12;
-if ($stat_today === 0) $stat_today = 6;
-if ($stat_completed === 0) $stat_completed = 6;
-
 $where_clauses = [];
 $params = [];
 $types = '';
@@ -135,93 +131,15 @@ if ($stmt) {
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
             // Format nice display date (e.g. 2 Sep 2026)
-            if (!empty($row['appointment_date'])) {
+            if (!empty($row['appointment_date']) && strtotime($row['appointment_date']) !== false) {
                 $row['formatted_date'] = date('j M Y', strtotime($row['appointment_date']));
             } else {
-                $row['formatted_date'] = '2 Sep 2026';
+                $row['formatted_date'] = '-';
             }
             $appointments[] = $row;
         }
     }
     mysqli_stmt_close($stmt);
-}
-
-// Fallback seed data if table is empty
-if (empty($appointments) && $total_records === 0 && $search === '' && $status === '') {
-    $appointments = [
-        [
-            'id' => 1,
-            'appointment_id' => 'ABC-001',
-            'patient_name' => 'Rahul Mishra',
-            'package_name' => 'Stress Management',
-            'appointment_date' => date('Y-m-d'),
-            'formatted_date' => date('j M Y'),
-            'appointment_time' => '8:00 AM',
-            'duration' => '45 min',
-            'doctor_name' => 'Dr. Nidhi Jha',
-            'agenda' => 'Follow-up consultation for stress care protocol and sleep quality check.',
-            'prescription' => 'Ashwagandha Churna 3g twice daily with warm milk, Brahmi Vati 1 tablet before bed.',
-            'status' => 'Scheduled'
-        ],
-        [
-            'id' => 2,
-            'appointment_id' => 'ABC-002',
-            'patient_name' => 'Rahul Mishra',
-            'package_name' => 'Stress Management',
-            'appointment_date' => date('Y-m-d'),
-            'formatted_date' => date('j M Y'),
-            'appointment_time' => '8:00 AM',
-            'duration' => '45 min',
-            'doctor_name' => 'Dr. Nidhi Jha',
-            'agenda' => 'Follow-up consultation for stress care protocol and sleep quality check.',
-            'prescription' => 'Ashwagandha Churna 3g twice daily with warm milk, Brahmi Vati 1 tablet before bed.',
-            'status' => 'Scheduled'
-        ],
-        [
-            'id' => 3,
-            'appointment_id' => 'ABC-003',
-            'patient_name' => 'Rahul Mishra',
-            'package_name' => 'Stress Management',
-            'appointment_date' => date('Y-m-d'),
-            'formatted_date' => date('j M Y'),
-            'appointment_time' => '8:00 AM',
-            'duration' => '45 min',
-            'doctor_name' => 'Dr. Nidhi Jha',
-            'agenda' => 'Follow-up consultation for stress care protocol and sleep quality check.',
-            'prescription' => 'Ashwagandha Churna 3g twice daily with warm milk, Brahmi Vati 1 tablet before bed.',
-            'status' => 'Completed'
-        ],
-        [
-            'id' => 4,
-            'appointment_id' => 'ABC-004',
-            'patient_name' => 'Rahul Mishra',
-            'package_name' => 'Stress Management',
-            'appointment_date' => date('Y-m-d'),
-            'formatted_date' => date('j M Y'),
-            'appointment_time' => '8:00 AM',
-            'duration' => '45 min',
-            'doctor_name' => 'Dr. Nidhi Jha',
-            'agenda' => 'Follow-up consultation for stress care protocol and sleep quality check.',
-            'prescription' => 'Ashwagandha Churna 3g twice daily with warm milk, Brahmi Vati 1 tablet before bed.',
-            'status' => 'Completed'
-        ],
-        [
-            'id' => 5,
-            'appointment_id' => 'ABC-005',
-            'patient_name' => 'Rahul Mishra',
-            'package_name' => 'Stress Management',
-            'appointment_date' => date('Y-m-d'),
-            'formatted_date' => date('j M Y'),
-            'appointment_time' => '8:00 AM',
-            'duration' => '45 min',
-            'doctor_name' => 'Dr. Nidhi Jha',
-            'agenda' => 'Follow-up consultation for stress care protocol and sleep quality check.',
-            'prescription' => 'Ashwagandha Churna 3g twice daily with warm milk, Brahmi Vati 1 tablet before bed.',
-            'status' => 'Completed'
-        ]
-    ];
-    $total_records = count($appointments);
-    $total_pages = 1;
 }
 
 echo json_encode([

@@ -173,7 +173,7 @@
               </svg>
             </div>
           </div>
-          <div class="stat-value" id="statTotalAppointments">12</div>
+          <div class="stat-value" id="statTotalAppointments">0</div>
         </div>
 
         <!-- Today's Appointments Card -->
@@ -189,7 +189,7 @@
               </svg>
             </div>
           </div>
-          <div class="stat-value" id="statTodayAppointments">6</div>
+          <div class="stat-value" id="statTodayAppointments">0</div>
         </div>
 
         <!-- Completed Appointments Card -->
@@ -205,7 +205,7 @@
               </svg>
             </div>
           </div>
-          <div class="stat-value" id="statCompletedAppointments">6</div>
+          <div class="stat-value" id="statCompletedAppointments">0</div>
         </div>
 
       </section>
@@ -244,212 +244,7 @@
               </tr>
             </thead>
             <tbody id="appointmentsTableBody">
-              
-              <!-- Row 1: Scheduled -->
-              <tr class="appointment-row" 
-                  data-id="ABC-001"
-                  data-patient="Rahul Mishra"
-                  data-package="Stress Management"
-                  data-date="2 Sept 2026"
-                  data-time="03:00 - 03:45 PM"
-                  data-table-time="8:00 AM"
-                  data-doctor="Dr. Nidhi Jha"
-                  data-duration="45 min"
-                  data-agenda="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-prescription="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-status="Scheduled">
-                <td class="td-patient-name font-bold">Rahul Mishra</td>
-                <td class="td-package text-muted-dark">Stress Management</td>
-                <td class="td-date text-muted-dark">2 Sep 2026</td>
-                <td class="td-time text-muted-dark">8:00 AM</td>
-                <td class="td-doctor text-muted-dark doctor-name-cell">Dr. Nidhi Jha</td>
-                <td class="td-status">
-                  <span class="status-badge appt-status status-scheduled">Scheduled</span>
-                </td>
-                <td class="td-action text-right">
-                  <div class="action-menu-container">
-                    <button type="button" class="action-dots-btn" aria-label="Actions for Rahul Mishra">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                    </button>
-                    <div class="action-dropdown appt-dropdown" role="menu">
-                      <button type="button" class="dropdown-item reassign-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                        </svg>
-                        <span>Reassign Doctor</span>
-                      </button>
-                      <button type="button" class="dropdown-item view-appt-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                        <span>View</span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Row 2: Scheduled -->
-              <tr class="appointment-row" 
-                  data-id="ABC-002"
-                  data-patient="Rahul Mishra"
-                  data-package="Stress Management"
-                  data-date="2 Sept 2026"
-                  data-time="03:00 - 03:45 PM"
-                  data-table-time="8:00 AM"
-                  data-doctor="Dr. Nidhi Jha"
-                  data-duration="45 min"
-                  data-agenda="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-prescription="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-status="Scheduled">
-                <td class="td-patient-name font-bold">Rahul Mishra</td>
-                <td class="td-package text-muted-dark">Stress Management</td>
-                <td class="td-date text-muted-dark">2 Sep 2026</td>
-                <td class="td-time text-muted-dark">8:00 AM</td>
-                <td class="td-doctor text-muted-dark doctor-name-cell">Dr. Nidhi Jha</td>
-                <td class="td-status">
-                  <span class="status-badge appt-status status-scheduled">Scheduled</span>
-                </td>
-                <td class="td-action text-right">
-                  <div class="action-menu-container">
-                    <button type="button" class="action-dots-btn" aria-label="Actions for Rahul Mishra">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                    </button>
-                    <div class="action-dropdown appt-dropdown" role="menu">
-                      <button type="button" class="dropdown-item reassign-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                        <span>Reassign Doctor</span>
-                      </button>
-                      <button type="button" class="dropdown-item view-appt-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        <span>View</span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Row 3: Completed -->
-              <tr class="appointment-row" 
-                  data-id="ABC-003"
-                  data-patient="Rahul Mishra"
-                  data-package="Stress Management"
-                  data-date="2 Sept 2026"
-                  data-time="03:00 - 03:45 PM"
-                  data-table-time="8:00 AM"
-                  data-doctor="Dr. Nidhi Jha"
-                  data-duration="45 min"
-                  data-agenda="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-prescription="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-status="Completed">
-                <td class="td-patient-name font-bold">Rahul Mishra</td>
-                <td class="td-package text-muted-dark">Stress Management</td>
-                <td class="td-date text-muted-dark">2 Sep 2026</td>
-                <td class="td-time text-muted-dark">8:00 AM</td>
-                <td class="td-doctor text-muted-dark doctor-name-cell">Dr. Nidhi Jha</td>
-                <td class="td-status">
-                  <span class="status-badge appt-status status-completed">Completed</span>
-                </td>
-                <td class="td-action text-right">
-                  <div class="action-menu-container">
-                    <button type="button" class="action-dots-btn" aria-label="Actions for Rahul Mishra">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                    </button>
-                    <div class="action-dropdown appt-dropdown" role="menu">
-                      <button type="button" class="dropdown-item reassign-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                        <span>Reassign Doctor</span>
-                      </button>
-                      <button type="button" class="dropdown-item view-appt-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        <span>View</span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Row 4: Completed -->
-              <tr class="appointment-row" 
-                  data-id="ABC-004"
-                  data-patient="Rahul Mishra"
-                  data-package="Stress Management"
-                  data-date="2 Sept 2026"
-                  data-time="03:00 - 03:45 PM"
-                  data-table-time="8:00 AM"
-                  data-doctor="Dr. Nidhi Jha"
-                  data-duration="45 min"
-                  data-agenda="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-prescription="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-status="Completed">
-                <td class="td-patient-name font-bold">Rahul Mishra</td>
-                <td class="td-package text-muted-dark">Stress Management</td>
-                <td class="td-date text-muted-dark">2 Sep 2026</td>
-                <td class="td-time text-muted-dark">8:00 AM</td>
-                <td class="td-doctor text-muted-dark doctor-name-cell">Dr. Nidhi Jha</td>
-                <td class="td-status">
-                  <span class="status-badge appt-status status-completed">Completed</span>
-                </td>
-                <td class="td-action text-right">
-                  <div class="action-menu-container">
-                    <button type="button" class="action-dots-btn" aria-label="Actions for Rahul Mishra">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                    </button>
-                    <div class="action-dropdown appt-dropdown" role="menu">
-                      <button type="button" class="dropdown-item reassign-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                        <span>Reassign Doctor</span>
-                      </button>
-                      <button type="button" class="dropdown-item view-appt-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        <span>View</span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Row 5: Completed -->
-              <tr class="appointment-row" 
-                  data-id="ABC-005"
-                  data-patient="Rahul Mishra"
-                  data-package="Stress Management"
-                  data-date="2 Sept 2026"
-                  data-time="03:00 - 03:45 PM"
-                  data-table-time="8:00 AM"
-                  data-doctor="Dr. Nidhi Jha"
-                  data-duration="45 min"
-                  data-agenda="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-prescription="Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum"
-                  data-status="Completed">
-                <td class="td-patient-name font-bold">Rahul Mishra</td>
-                <td class="td-package text-muted-dark">Stress Management</td>
-                <td class="td-date text-muted-dark">2 Sep 2026</td>
-                <td class="td-time text-muted-dark">8:00 AM</td>
-                <td class="td-doctor text-muted-dark doctor-name-cell">Dr. Nidhi Jha</td>
-                <td class="td-status">
-                  <span class="status-badge appt-status status-completed">Completed</span>
-                </td>
-                <td class="td-action text-right">
-                  <div class="action-menu-container">
-                    <button type="button" class="action-dots-btn" aria-label="Actions for Rahul Mishra">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                    </button>
-                    <div class="action-dropdown appt-dropdown" role="menu">
-                      <button type="button" class="dropdown-item reassign-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                        <span>Reassign Doctor</span>
-                      </button>
-                      <button type="button" class="dropdown-item view-appt-btn" role="menuitem">
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        <span>View</span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-
+              <!-- Dynamically populated via appointments.js & get_appointments.php -->
             </tbody>
           </table>
         </div>
@@ -457,15 +252,15 @@
         <!-- Table Footer / Pagination -->
         <footer class="table-pagination-footer">
           <div class="pagination-info">
-            Showing <span id="apptShowingStart">1</span> to <span id="apptShowingEnd">5</span> of <span id="apptTotalItems">20</span> items
+            Showing <span id="apptShowingStart">0</span> to <span id="apptShowingEnd">0</span> of <span id="apptTotalItems">0</span> items
           </div>
           <div class="pagination-controls">
-            <span class="page-indicator" id="apptPageIndicator">1 of 4</span>
+            <span class="page-indicator" id="apptPageIndicator">1 of 1</span>
             <div class="page-arrows">
               <button type="button" class="pagination-arrow-btn" id="apptPrevPageBtn" aria-label="Previous page" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"></polyline></svg>
               </button>
-              <button type="button" class="pagination-arrow-btn" id="apptNextPageBtn" aria-label="Next page">
+              <button type="button" class="pagination-arrow-btn" id="apptNextPageBtn" aria-label="Next page" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
             </div>
@@ -495,10 +290,6 @@
             <div class="select-dropdown-container">
               <select id="doctorSelectInput" class="form-select-input" required>
                 <option value="" disabled selected>Select Doctor</option>
-                <option value="Dr. Nidhi Jha">Dr. Nidhi Jha</option>
-                <option value="Dr. Rohit Mehra">Dr. Rohit Mehra</option>
-                <option value="Dr. Priya Patel">Dr. Priya Patel</option>
-                <option value="Dr. Ankit Verma">Dr. Ankit Verma</option>
               </select>
               <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -542,15 +333,15 @@
 
       <div class="modal-body">
         <div class="details-grid">
-          <div class="detail-row"><span class="detail-key">Appointment ID:</span><span class="detail-val" id="modalApptId">ABC-001</span></div>
-          <div class="detail-row"><span class="detail-key">Patient Name:</span><span class="detail-val" id="modalApptPatient">Rahul Mishra</span></div>
-          <div class="detail-row"><span class="detail-key">Package:</span><span class="detail-val" id="modalApptPackage">Stress Management</span></div>
-          <div class="detail-row"><span class="detail-key">Date:</span><span class="detail-val" id="modalApptDate">2 Sept 2026</span></div>
-          <div class="detail-row"><span class="detail-key">Time:</span><span class="detail-val" id="modalApptTime">03:00 - 03:45 PM</span></div>
-          <div class="detail-row"><span class="detail-key">Doctors Name:</span><span class="detail-val" id="modalApptDoctor">Dr. Rohit Mehra</span></div>
-          <div class="detail-row"><span class="detail-key">Duration:</span><span class="detail-val" id="modalApptDuration">45 min</span></div>
-          <div class="detail-row"><span class="detail-key">Agenda:</span><span class="detail-val text-long" id="modalApptAgenda">Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum</span></div>
-          <div class="detail-row"><span class="detail-key">Prescription :</span><span class="detail-val text-long" id="modalApptPrescription">Lorem ipsum simple tx Lorem ipsumLorem ipsum simple tx Lorem ipsum</span></div>
+          <div class="detail-row"><span class="detail-key">Appointment ID:</span><span class="detail-val" id="modalApptId">-</span></div>
+          <div class="detail-row"><span class="detail-key">Patient Name:</span><span class="detail-val" id="modalApptPatient">-</span></div>
+          <div class="detail-row"><span class="detail-key">Package:</span><span class="detail-val" id="modalApptPackage">-</span></div>
+          <div class="detail-row"><span class="detail-key">Date:</span><span class="detail-val" id="modalApptDate">-</span></div>
+          <div class="detail-row"><span class="detail-key">Time:</span><span class="detail-val" id="modalApptTime">-</span></div>
+          <div class="detail-row"><span class="detail-key">Doctors Name:</span><span class="detail-val" id="modalApptDoctor">-</span></div>
+          <div class="detail-row"><span class="detail-key">Duration:</span><span class="detail-val" id="modalApptDuration">-</span></div>
+          <div class="detail-row"><span class="detail-key">Agenda:</span><span class="detail-val text-long" id="modalApptAgenda">-</span></div>
+          <div class="detail-row"><span class="detail-key">Prescription :</span><span class="detail-val text-long" id="modalApptPrescription">-</span></div>
         </div>
       </div>
 

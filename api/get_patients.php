@@ -12,6 +12,8 @@
  */
 
 require_once __DIR__ . '/db_connect.php';
+global $connection1;
+$connection1 = $GLOBALS['connection1'] ?? $connection1;
 
 $raw_input = file_get_contents('php://input');
 $body_data = [];
@@ -155,17 +157,40 @@ if ($stmt) {
     mysqli_stmt_close($stmt);
 }
 
-// Default mock data if table is empty
-if (empty($patients) && $total_records === 0 && $search === '' && $package === '' && $status === '') {
-    $patients = [
-        ['id' => 1, 'patient_id' => 'E001', 'full_name' => 'Rahul Sharma', 'dob' => '1990-05-14', 'age' => 34, 'phone_number' => '9876543210', 'gender' => 'Male', 'email' => 'rahulsharma@gmail.com', 'package_name' => 'Stresscare', 'total_appointments' => 18, 'status' => 'Ongoing'],
-        ['id' => 2, 'patient_id' => 'E002', 'full_name' => 'Pooja Deshmukh', 'dob' => '1996-08-22', 'age' => 28, 'phone_number' => '9812345678', 'gender' => 'Female', 'email' => 'poojad@gmail.com', 'package_name' => 'Reset Your Hormones', 'total_appointments' => 12, 'status' => 'Ongoing'],
-        ['id' => 3, 'patient_id' => 'E003', 'full_name' => 'Vikram Malhotra', 'dob' => '1982-11-03', 'age' => 42, 'phone_number' => '9823456781', 'gender' => 'Male', 'email' => 'vikram.m@gmail.com', 'package_name' => 'Gut Healing Package', 'total_appointments' => 24, 'status' => 'Completed'],
-        ['id' => 4, 'patient_id' => 'E004', 'full_name' => 'Ananya Sengupta', 'dob' => '1995-02-18', 'age' => 29, 'phone_number' => '9834567892', 'gender' => 'Female', 'email' => 'ananya.s@gmail.com', 'package_name' => 'Work On Metabolism', 'total_appointments' => 15, 'status' => 'Ongoing'],
-        ['id' => 5, 'patient_id' => 'E005', 'full_name' => 'Suresh Iyer', 'dob' => '1974-09-30', 'age' => 50, 'phone_number' => '9845678903', 'gender' => 'Male', 'email' => 'sureshiyer@gmail.com', 'package_name' => 'Stresscare', 'total_appointments' => 20, 'status' => 'Ongoing']
-    ];
-    $total_records = count($patients);
-    $total_pages = 1;
+// Fetch dynamic distinct filter options from database
+$available_packages = [];
+if ($connection1) {
+    $pkg_res = @mysqli_query($connection1, "
+        SELECT DISTINCT package_name FROM patients WHERE package_name IS NOT NULL AND TRIM(package_name) != ''
+        UNION
+        SELECT DISTINCT package_name FROM packages WHERE package_name IS NOT NULL AND TRIM(package_name) != ''
+        ORDER BY package_name ASC
+    ");
+    if ($pkg_res) {
+        while ($pRow = mysqli_fetch_assoc($pkg_res)) {
+            if (!empty($pRow['package_name'])) {
+                $available_packages[] = $pRow['package_name'];
+            }
+        }
+    }
+}
+
+$available_statuses = [];
+if ($connection1) {
+    $st_res = @mysqli_query($connection1, "
+        SELECT DISTINCT status FROM patients WHERE status IS NOT NULL AND TRIM(status) != ''
+        ORDER BY status ASC
+    ");
+    if ($st_res) {
+        while ($sRow = mysqli_fetch_assoc($st_res)) {
+            if (!empty($sRow['status'])) {
+                $available_statuses[] = $sRow['status'];
+            }
+        }
+    }
+}
+if (empty($available_statuses)) {
+    $available_statuses = ['Ongoing', 'Completed'];
 }
 
 echo json_encode([
@@ -175,5 +200,10 @@ echo json_encode([
     'total_pages' => $total_pages,
     'current_page' => $page,
     'limit' => $limit,
-    'data' => $patients
+    'data' => $patients,
+    'filter_options' => [
+        'packages' => $available_packages,
+        'statuses' => $available_statuses
+    ]
 ]);
+

@@ -207,18 +207,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     appointments.forEach(apt => {
       const aptId = apt.id;
-      const displayId = apt.appointment_id || `ABC-${String(aptId).padStart(3, '0')}`;
-      const patientName = apt.patient_name || 'Patient';
-      const packageName = apt.package_name || 'Stress Management';
-      const displayDate = apt.formatted_date || apt.appointment_date || '2 Sep 2026';
-      const displayTime = apt.appointment_time || '8:00 AM';
-      const doctorName = apt.doctor_name || 'Dr. Nidhi Jha';
-      const duration = apt.duration || '45 min';
+      const displayId = apt.appointment_id || (aptId ? `ABC-${String(aptId).padStart(3, '0')}` : '-');
+      const patientName = apt.patient_name || '-';
+      const packageName = apt.package_name || '-';
+      const displayDate = apt.formatted_date || apt.appointment_date || '-';
+      const displayTime = apt.appointment_time || '-';
+      const doctorName = apt.doctor_name || '-';
+      const duration = apt.duration || '-';
       const status = apt.status || 'Scheduled';
       const isCompleted = status.toLowerCase() === 'completed';
       const statusClass = isCompleted ? 'status-completed' : 'status-scheduled';
-      const agenda = apt.agenda || 'Follow-up consultation for wellness care.';
-      const prescription = apt.prescription || 'Custom herbal formulations as prescribed.';
+      const agenda = apt.agenda || '-';
+      const prescription = apt.prescription || '-';
 
       const row = document.createElement('tr');
       row.className = 'appointment-row';
@@ -306,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeAllDropdowns() {
     document.querySelectorAll('.appt-dropdown.open').forEach(dropdown => {
       dropdown.classList.remove('open');
+      dropdown.classList.remove('dropup');
     });
     document.querySelectorAll('.action-dots-btn.active').forEach(btn => {
       btn.classList.remove('active');
@@ -323,6 +324,18 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllDropdowns();
 
       if (!isOpen) {
+        // Smart edge detection
+        const btnRect = dotsBtn.getBoundingClientRect();
+        const dropdownHeight = 160;
+        const spaceBelow = window.innerHeight - btnRect.bottom;
+        const spaceAbove = btnRect.top;
+
+        if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+          dropdown.classList.add('dropup');
+        } else {
+          dropdown.classList.remove('dropup');
+        }
+
         dropdown.classList.add('open');
         dotsBtn.classList.add('active');
       }

@@ -25,10 +25,43 @@ if (empty($data) && !empty($_POST)) {
 }
 
 $title = trim((string) ($data['title'] ?? $data['name'] ?? $data['workshopName'] ?? ''));
-$instructor = trim((string) ($data['instructor'] ?? $data['speaker'] ?? 'Dr. Nidhi Jha'));
-$speaker = trim((string) ($data['speaker'] ?? $instructor));
+$subtitle = trim((string) ($data['subtitle'] ?? $data['workshop_subtitle'] ?? $data['workshopSubtitle'] ?? ''));
+$assign_speaker = trim((string) ($data['assign_speaker'] ?? $data['assigned_speaker'] ?? $data['assignSpeaker'] ?? ''));
+$meet_link = trim((string) ($data['meet_link'] ?? $data['meetLink'] ?? ''));
+
+$instructor = trim((string) ($data['instructor'] ?? ($assign_speaker !== '' ? $assign_speaker : ($data['speaker'] ?? 'Dr. Nidhi Jha'))));
+$speaker = trim((string) ($data['speaker'] ?? ($assign_speaker !== '' ? $assign_speaker : $instructor)));
+if ($assign_speaker === '') {
+    $assign_speaker = $speaker ?: $instructor;
+}
+
 $attendee_type = trim((string) ($data['attendee_type'] ?? $data['attendee'] ?? 'Doctor'));
-$date = trim((string) ($data['date'] ?? date('Y-m-d')));
+if (strcasecmp($attendee_type, 'patient') === 0) {
+    $attendee_type = 'Patient';
+} elseif (strcasecmp($attendee_type, 'doctor') === 0) {
+    $attendee_type = 'Doctor';
+}
+$raw_date = trim((string) ($data['date'] ?? ''));
+$date = date('Y-m-d');
+if ($raw_date !== '' && $raw_date !== '0000-00-00') {
+    $dcheck = DateTime::createFromFormat('Y-m-d', $raw_date);
+    if ($dcheck && $dcheck->format('Y-m-d') === $raw_date) {
+        $date = $raw_date;
+    } else {
+        $dcheck2 = DateTime::createFromFormat('d/m/Y', $raw_date);
+        if (!$dcheck2) {
+            $dcheck2 = DateTime::createFromFormat('d-m-Y', $raw_date);
+        }
+        if ($dcheck2) {
+            $date = $dcheck2->format('Y-m-d');
+        } else {
+            $ts = strtotime($raw_date);
+            if ($ts && $ts > 0) {
+                $date = date('Y-m-d', $ts);
+            }
+        }
+    }
+}
 $time = trim((string) ($data['time'] ?? '8:00 AM'));
 $capacity = intval($data['capacity'] ?? 50);
 $registrations = intval($data['registrations'] ?? $data['enrolled'] ?? 0);
@@ -50,7 +83,30 @@ if (!in_array($status, ['Upcoming', 'Completed', 'Cancelled', 'Active', 'Past'],
 
 // Generate Workshop ID (e.g. WS-001)
 $new_ws_code = 'WS-001';
+$existing_columns = [];
 if ($connection1) {
+    // Check and auto-create table / columns if needed
+    $columns_res = @mysqli_query($connection1, "SHOW COLUMNS FROM workshops");
+    if ($columns_res) {
+        while ($col = mysqli_fetch_assoc($columns_res)) {
+            $existing_columns[] = strtolower($col['Field']);
+        }
+    }
+    if (!empty($existing_columns)) {
+        if (!in_array('subtitle', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE workshops ADD COLUMN `subtitle` VARCHAR(255) NULL AFTER `title`");
+            $existing_columns[] = 'subtitle';
+        }
+        if (!in_array('assign_speaker', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE workshops ADD COLUMN `assign_speaker` VARCHAR(150) NULL AFTER `speaker`");
+            $existing_columns[] = 'assign_speaker';
+        }
+        if (!in_array('meet_link', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE workshops ADD COLUMN `meet_link` VARCHAR(255) NULL AFTER `assign_speaker`");
+            $existing_columns[] = 'meet_link';
+        }
+    }
+
     $max_res = mysqli_query($connection1, "SELECT MAX(id) as max_id FROM workshops");
     if ($max_res && $max_row = mysqli_fetch_assoc($max_res)) {
         $next_id = intval($max_row['max_id']) + 1;
@@ -60,11 +116,43 @@ if ($connection1) {
 
 $image_url = 'assets/package-thumb.jpg';
 
-$sql = "
-    INSERT INTO workshops 
-    (workshop_id, title, instructor, speaker, attendee_type, date, time, location, capacity, enrolled, registrations, price, fee, about, image_url, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-";
+// Build dynamic INSERT query based on existing/added columns
+$insert_cols = ['workshop_id', 'title', 'instructor', 'speaker', 'attendee_type', 'date', 'time', 'location', 'capacity', 'enrolled', 'registrations', 'price', 'fee', 'about', 'image_url', 'status'];
+$insert_vals = [$new_ws_code, $title, $instructor, $speaker, $attendee_type, $date, $time, $location, $capacity, $registrations, $registrations, $fee, $fee, $about, $image_url, $status];
+$types = 'ssssssssiiiddsss';
+
+if (!empty($existing_columns)) {
+    if (in_array('subtitle', $existing_columns)) {
+        $insert_cols[] = 'subtitle';
+        $insert_vals[] = $subtitle;
+        $types .= 's';
+    }
+    if (in_array('assign_speaker', $existing_columns)) {
+        $insert_cols[] = 'assign_speaker';
+        $insert_vals[] = $assign_speaker;
+        $types .= 's';
+    }
+    if (in_array('meet_link', $existing_columns)) {
+        $insert_cols[] = 'meet_link';
+        $insert_vals[] = $meet_link;
+        $types .= 's';
+    }
+} else {
+    $insert_cols[] = 'subtitle';
+    $insert_vals[] = $subtitle;
+    $types .= 's';
+
+    $insert_cols[] = 'assign_speaker';
+    $insert_vals[] = $assign_speaker;
+    $types .= 's';
+
+    $insert_cols[] = 'meet_link';
+    $insert_vals[] = $meet_link;
+    $types .= 's';
+}
+
+$placeholders = implode(', ', array_fill(0, count($insert_cols), '?'));
+$sql = "INSERT INTO workshops (" . implode(', ', $insert_cols) . ") VALUES ($placeholders)";
 
 $stmt = mysqli_prepare($connection1, $sql);
 if (!$stmt) {
@@ -73,26 +161,7 @@ if (!$stmt) {
     exit;
 }
 
-mysqli_stmt_bind_param(
-    $stmt,
-    'ssssssssiiiddsss',
-    $new_ws_code,
-    $title,
-    $instructor,
-    $speaker,
-    $attendee_type,
-    $date,
-    $time,
-    $location,
-    $capacity,
-    $registrations,
-    $registrations,
-    $fee,
-    $fee,
-    $about,
-    $image_url,
-    $status
-);
+mysqli_stmt_bind_param($stmt, $types, ...$insert_vals);
 
 if (mysqli_stmt_execute($stmt)) {
     $insert_id = mysqli_insert_id($connection1);
@@ -105,9 +174,13 @@ if (mysqli_stmt_execute($stmt)) {
             'id' => $insert_id,
             'workshop_id' => $new_ws_code,
             'title' => $title,
+            'subtitle' => $subtitle,
+            'assign_speaker' => $assign_speaker,
+            'meet_link' => $meet_link,
             'date' => $date,
             'time' => $time,
             'attendee_type' => $attendee_type,
+            'attendee' => $attendee_type,
             'registrations' => $registrations,
             'fee' => $fee,
             'status' => $status

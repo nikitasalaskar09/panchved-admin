@@ -138,6 +138,26 @@ if ($dcheck && $dcheck->format('Y-m-d') === $dob_input) {
     }
 }
 
+if ($formatted_dob) {
+    $dob_dt = new DateTime($formatted_dob);
+    $today_dt = new DateTime('today');
+    if ($dob_dt >= $today_dt) {
+        echo json_encode([
+            'status' => '0',
+            'message' => 'Date of birth must be a past date.'
+        ]);
+        exit;
+    }
+    $age_interval = $today_dt->diff($dob_dt);
+    if ($age_interval->y < 18) {
+        echo json_encode([
+            'status' => '0',
+            'message' => 'Doctor must be at least 18 years old.'
+        ]);
+        exit;
+    }
+}
+
 $years_of_experience = max(0, intval($years_of_experience));
 
 /* =========================================
@@ -249,7 +269,6 @@ mysqli_stmt_bind_param(
 
 if (mysqli_stmt_execute($up_stmt)) {
     mysqli_stmt_close($up_stmt);
-    mysqli_close($connection1);
 
     echo json_encode([
         'status' => '1',
@@ -278,6 +297,5 @@ if (mysqli_stmt_execute($up_stmt)) {
         'error' => mysqli_stmt_error($up_stmt)
     ]);
     mysqli_stmt_close($up_stmt);
-    mysqli_close($connection1);
 }
 ?>

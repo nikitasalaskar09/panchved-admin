@@ -152,6 +152,24 @@ if (!$formatted_dob) {
     exit;
 }
 
+$dob_dt = new DateTime($formatted_dob);
+$today_dt = new DateTime('today');
+if ($dob_dt >= $today_dt) {
+    echo json_encode([
+        'status' => '0',
+        'message' => 'Date of birth must be a past date.'
+    ]);
+    exit;
+}
+$age_interval = $today_dt->diff($dob_dt);
+if ($age_interval->y < 18) {
+    echo json_encode([
+        'status' => '0',
+        'message' => 'Doctor must be at least 18 years old.'
+    ]);
+    exit;
+}
+
 /* =========================================
    VALIDATE YEARS OF EXPERIENCE
 ========================================= */

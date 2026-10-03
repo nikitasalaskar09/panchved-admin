@@ -121,8 +121,6 @@ if ($apt_check && $apt_row = mysqli_fetch_assoc($apt_check)) {
 }
 $doctor['total_appointments'] = $total_appointments;
 
-mysqli_close($connection1);
-
 http_response_code(200);
 echo json_encode([
     'status' => '1',

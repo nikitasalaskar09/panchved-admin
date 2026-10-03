@@ -55,35 +55,11 @@ $connection1 = mysqli_connect(
 |
 */
 
-if (!$connection1)
-{
-    die(
-        "Database Connection Failed: " .
-        mysqli_connect_error()
-    );
+if ($connection1 && !mysqli_connect_errno()) {
+    mysqli_set_charset($connection1, "utf8mb4");
+} else {
+    $connection1 = null;
 }
-
-
-/*
-|--------------------------------------------------------------------------
-| SET CHARACTER ENCODING
-|--------------------------------------------------------------------------
-|
-| utf8mb4 supports:
-| - English
-| - Marathi
-| - Hindi
-| - Emojis
-| - Special Characters
-|
-| Recommended for all modern applications.
-|
-*/
-
-mysqli_set_charset(
-    $connection1,
-    "utf8mb4"
-);
 
 
 /*

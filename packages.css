@@ -191,6 +191,17 @@
   box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
 }
 
+/* For bottom rows, open dropdown upwards so it never pushes or creates extra space below */
+.pkg-dropdown.dropup {
+  top: auto !important;
+  bottom: calc(100% + 6px) !important;
+  transform: translateY(4px);
+}
+
+.pkg-dropdown.dropup.open {
+  transform: translateY(0) !important;
+}
+
 .pkg-dropdown .dropdown-item {
   display: flex;
   align-items: center;
@@ -266,7 +277,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 940px;
+  width: 100%;
 }
 
 .form-section-card {
@@ -312,6 +323,12 @@
   color: #475569;
 }
 
+.required-star {
+  color: #EF4444;
+  margin-left: 3px;
+  font-weight: 700;
+}
+
 .form-control-input {
   width: 100%;
   height: 44px;
@@ -351,6 +368,53 @@
   min-height: 44px;
   line-height: 1.45;
   transition: border-color var(--transition-fast, 0.18s ease), box-shadow var(--transition-fast, 0.18s ease);
+}
+
+/* --------------------------------------------------------------------------
+   Select Dropdown Container & Styling
+   -------------------------------------------------------------------------- */
+.select-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.select-dropdown-container .form-select-input {
+  width: 100%;
+  height: 44px;
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-color, #E2E8F0);
+  border-radius: 8px;
+  padding: 0 40px 0 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #0F172A);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast, 0.18s ease), box-shadow var(--transition-fast, 0.18s ease);
+}
+
+.select-dropdown-container .form-select-input:hover {
+  border-color: #CBD5E1;
+}
+
+.select-dropdown-container .form-select-input:focus {
+  border-color: var(--primary-teal, #00828A);
+  box-shadow: 0 0 0 3px rgba(0, 130, 138, 0.12);
+}
+
+.select-dropdown-container .select-chevron {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #64748B;
+  pointer-events: none;
 }
 
 /* --------------------------------------------------------------------------
@@ -468,6 +532,54 @@
 .view-package-modal-card {
   max-width: 620px;
   width: 100%;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color, #E2E8F0);
+  position: relative;
+  overflow: hidden;
+}
+
+#viewPackageModal .modal-header {
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#viewPackageModal .modal-header-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #D6F1F3;
+  color: #0284C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#viewPackageModal .modal-header-icon {
+  width: 24px;
+  height: 24px;
+  stroke: #0284C7;
+  stroke-width: 2;
+}
+
+#viewPackageModal .modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+#viewPackageModal .modal-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748B;
+  margin-top: 2px;
 }
 
 .pkg-modal-body {
@@ -521,20 +633,40 @@
   display: block;
 }
 
+.pkg-tab-pane .details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pkg-tab-pane .detail-row {
+  display: flex;
+  align-items: baseline;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
 .pkg-tab-pane .detail-key {
-  width: 160px;
+  width: 175px;
+  min-width: 175px;
+  max-width: 175px;
   flex-shrink: 0;
-  color: #0284C7;
+  color: #2563EB;
   font-weight: 600;
+  letter-spacing: -0.1px;
 }
 
 .pkg-tab-pane .detail-val {
-  color: var(--text-primary, #0F172A);
+  flex: 1;
+  font-weight: 500;
+  color: #0F172A;
+  word-break: break-word;
 }
 
 .pkg-tab-pane .detail-val.text-long {
-  color: #334155;
-  line-height: 1.5;
+  color: #1E293B;
+  font-weight: 400;
+  line-height: 1.55;
 }
 
 /* Image Thumbnail in Details Grid */

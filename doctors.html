@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="dashboard.css">
-  <link rel="stylesheet" href="patients.css">
-  <link rel="stylesheet" href="doctors.css">
+  <link rel="stylesheet" href="dashboard.css?v=1791019479">
+  <link rel="stylesheet" href="patients.css?v=1791019479">
+  <link rel="stylesheet" href="doctors.css?v=1791019479">
 </head>
 <body>
   <div class="dashboard-layout">
@@ -197,9 +197,8 @@
         <section class="table-card" aria-label="Doctors Table">
           <div class="table-responsive">
             <table class="patients-table doctors-table" id="doctorsTable">
-              <thead>
-                <tr>
-                  <th scope="col" class="th-patient">Patient</th>
+              <thead>                <tr>
+                  <th scope="col" class="th-patient">Doctor</th>
                   <th scope="col" class="th-yoe">YOE</th>
                   <th scope="col" class="th-expertise">Expertise</th>
                   <th scope="col" class="th-status">Status</th>
@@ -207,252 +206,7 @@
                 </tr>
               </thead>
               <tbody id="doctorsTableBody">
-                <!-- Row 1 -->
-                <tr class="doctor-row" data-id="E001" data-name="Dr. Nidhi Jha" data-dob="08/05/2002" data-phone="9876543210" data-gender="Female" data-email="drnidhi@gmail.com" data-yoe="12" data-expertise="Ayurveda Physician" data-area="Pediatrics & Gynecology" data-reg="1234" data-hpr="1234" data-status="Active">
-                  <td class="td-patient">
-                    <div class="patient-profile-cell">
-                      <div class="patient-avatar-circle doc-avatar">NJ</div>
-                      <div class="patient-meta">
-                        <span class="patient-name">Dr. Nidhi Jha</span>
-                        <span class="patient-id">E001</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="td-yoe">12</td>
-                  <td class="td-expertise">Ayurveda Physician</td>
-                  <td class="td-status">
-                    <span class="status-badge doc-status status-active">Active</span>
-                  </td>
-                  <td class="td-action text-right">
-                    <div class="action-menu-container">
-                      <button type="button" class="action-dots-btn" aria-label="Actions for Dr. Nidhi Jha">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <circle cx="12" cy="5" r="2"></circle>
-                          <circle cx="12" cy="12" r="2"></circle>
-                          <circle cx="12" cy="19" r="2"></circle>
-                        </svg>
-                      </button>
-                      
-                      <!-- Action Dropdown with Status Submenu -->
-                      <div class="action-dropdown doctor-dropdown" role="menu">
-                        
-                        <!-- Change Status Item (Triggers Submenu) -->
-                        <div class="dropdown-item-wrapper">
-                          <button type="button" class="dropdown-item change-status-btn" role="menuitem">
-                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                            </svg>
-                            <span>Change Status</span>
-                          </button>
-                          <!-- Status Choices Popover Submenu -->
-                          <div class="status-submenu" role="menu">
-                            <button type="button" class="status-pill-opt opt-active" data-set-status="Active">Active</button>
-                            <button type="button" class="status-pill-opt opt-inactive" data-set-status="Inactive">Inactive</button>
-                          </div>
-                        </div>
-
-                        <!-- Edit Button -->
-                        <button type="button" class="dropdown-item edit-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 20h9"></path>
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                          </svg>
-                          <span>Edit</span>
-                        </button>
-
-                        <!-- View Button -->
-                        <button type="button" class="dropdown-item view-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                          </svg>
-                          <span>View</span>
-                        </button>
-
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- Row 2 -->
-                <tr class="doctor-row" data-id="E002" data-name="Dr. Nidhi Jha" data-dob="08/05/2002" data-phone="9876543210" data-gender="Female" data-email="drnidhi@gmail.com" data-yoe="12" data-expertise="Ayurveda Physician" data-area="Pediatrics & Gynecology" data-reg="1234" data-hpr="1234" data-status="Active">
-                  <td class="td-patient">
-                    <div class="patient-profile-cell">
-                      <div class="patient-avatar-circle doc-avatar">NJ</div>
-                      <div class="patient-meta">
-                        <span class="patient-name">Dr. Nidhi Jha</span>
-                        <span class="patient-id">E001</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="td-yoe">12</td>
-                  <td class="td-expertise">Ayurveda Physician</td>
-                  <td class="td-status">
-                    <span class="status-badge doc-status status-active">Active</span>
-                  </td>
-                  <td class="td-action text-right">
-                    <div class="action-menu-container">
-                      <button type="button" class="action-dots-btn" aria-label="Actions for Dr. Nidhi Jha">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                      </button>
-                      <div class="action-dropdown doctor-dropdown" role="menu">
-                        <div class="dropdown-item-wrapper">
-                          <button type="button" class="dropdown-item change-status-btn" role="menuitem">
-                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                            <span>Change Status</span>
-                          </button>
-                          <div class="status-submenu" role="menu">
-                            <button type="button" class="status-pill-opt opt-active" data-set-status="Active">Active</button>
-                            <button type="button" class="status-pill-opt opt-inactive" data-set-status="Inactive">Inactive</button>
-                          </div>
-                        </div>
-                        <button type="button" class="dropdown-item edit-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                          <span>Edit</span>
-                        </button>
-                        <button type="button" class="dropdown-item view-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                          <span>View</span>
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- Row 3 -->
-                <tr class="doctor-row" data-id="E003" data-name="Dr. Nidhi Jha" data-dob="08/05/2002" data-phone="9876543210" data-gender="Female" data-email="drnidhi@gmail.com" data-yoe="12" data-expertise="Ayurveda Physician" data-area="Pediatrics & Gynecology" data-reg="1234" data-hpr="1234" data-status="Active">
-                  <td class="td-patient">
-                    <div class="patient-profile-cell">
-                      <div class="patient-avatar-circle doc-avatar">NJ</div>
-                      <div class="patient-meta">
-                        <span class="patient-name">Dr. Nidhi Jha</span>
-                        <span class="patient-id">E001</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="td-yoe">12</td>
-                  <td class="td-expertise">Ayurveda Physician</td>
-                  <td class="td-status">
-                    <span class="status-badge doc-status status-active">Active</span>
-                  </td>
-                  <td class="td-action text-right">
-                    <div class="action-menu-container">
-                      <button type="button" class="action-dots-btn" aria-label="Actions for Dr. Nidhi Jha">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                      </button>
-                      <div class="action-dropdown doctor-dropdown" role="menu">
-                        <div class="dropdown-item-wrapper">
-                          <button type="button" class="dropdown-item change-status-btn" role="menuitem">
-                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                            <span>Change Status</span>
-                          </button>
-                          <div class="status-submenu" role="menu">
-                            <button type="button" class="status-pill-opt opt-active" data-set-status="Active">Active</button>
-                            <button type="button" class="status-pill-opt opt-inactive" data-set-status="Inactive">Inactive</button>
-                          </div>
-                        </div>
-                        <button type="button" class="dropdown-item edit-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                          <span>Edit</span>
-                        </button>
-                        <button type="button" class="dropdown-item view-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                          <span>View</span>
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- Row 4 -->
-                <tr class="doctor-row" data-id="E004" data-name="Dr. Nidhi Jha" data-dob="08/05/2002" data-phone="9876543210" data-gender="Female" data-email="drnidhi@gmail.com" data-yoe="12" data-expertise="Ayurveda Physician" data-area="Pediatrics & Gynecology" data-reg="1234" data-hpr="1234" data-status="Active">
-                  <td class="td-patient">
-                    <div class="patient-profile-cell">
-                      <div class="patient-avatar-circle doc-avatar">NJ</div>
-                      <div class="patient-meta">
-                        <span class="patient-name">Dr. Nidhi Jha</span>
-                        <span class="patient-id">E001</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="td-yoe">12</td>
-                  <td class="td-expertise">Ayurveda Physician</td>
-                  <td class="td-status">
-                    <span class="status-badge doc-status status-active">Active</span>
-                  </td>
-                  <td class="td-action text-right">
-                    <div class="action-menu-container">
-                      <button type="button" class="action-dots-btn" aria-label="Actions for Dr. Nidhi Jha">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                      </button>
-                      <div class="action-dropdown doctor-dropdown" role="menu">
-                        <div class="dropdown-item-wrapper">
-                          <button type="button" class="dropdown-item change-status-btn" role="menuitem">
-                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                            <span>Change Status</span>
-                          </button>
-                          <div class="status-submenu" role="menu">
-                            <button type="button" class="status-pill-opt opt-active" data-set-status="Active">Active</button>
-                            <button type="button" class="status-pill-opt opt-inactive" data-set-status="Inactive">Inactive</button>
-                          </div>
-                        </div>
-                        <button type="button" class="dropdown-item edit-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                          <span>Edit</span>
-                        </button>
-                        <button type="button" class="dropdown-item view-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                          <span>View</span>
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- Row 5 -->
-                <tr class="doctor-row" data-id="E005" data-name="Dr. Nidhi Jha" data-dob="08/05/2002" data-phone="9876543210" data-gender="Female" data-email="drnidhi@gmail.com" data-yoe="12" data-expertise="Ayurveda Physician" data-area="Pediatrics & Gynecology" data-reg="1234" data-hpr="1234" data-status="Active">
-                  <td class="td-patient">
-                    <div class="patient-profile-cell">
-                      <div class="patient-avatar-circle doc-avatar">NJ</div>
-                      <div class="patient-meta">
-                        <span class="patient-name">Dr. Nidhi Jha</span>
-                        <span class="patient-id">E001</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="td-yoe">12</td>
-                  <td class="td-expertise">Ayurveda Physician</td>
-                  <td class="td-status">
-                    <span class="status-badge doc-status status-active">Active</span>
-                  </td>
-                  <td class="td-action text-right">
-                    <div class="action-menu-container">
-                      <button type="button" class="action-dots-btn" aria-label="Actions for Dr. Nidhi Jha">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-                      </button>
-                      <div class="action-dropdown doctor-dropdown" role="menu">
-                        <div class="dropdown-item-wrapper">
-                          <button type="button" class="dropdown-item change-status-btn" role="menuitem">
-                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                            <span>Change Status</span>
-                          </button>
-                          <div class="status-submenu" role="menu">
-                            <button type="button" class="status-pill-opt opt-active" data-set-status="Active">Active</button>
-                            <button type="button" class="status-pill-opt opt-inactive" data-set-status="Inactive">Inactive</button>
-                          </div>
-                        </div>
-                        <button type="button" class="dropdown-item edit-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                          <span>Edit</span>
-                        </button>
-                        <button type="button" class="dropdown-item view-doc-btn" role="menuitem">
-                          <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                          <span>View</span>
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
+                <!-- Dynamically populated via doctors.js & get_doctors.php -->
               </tbody>
             </table>
           </div>
@@ -460,15 +214,15 @@
           <!-- Table Footer / Pagination -->
           <footer class="table-pagination-footer">
             <div class="pagination-info">
-              Showing <span id="docShowingStart">1</span> to <span id="docShowingEnd">5</span> of <span id="docTotalItems">20</span> items
+              Showing <span id="docShowingStart">0</span> to <span id="docShowingEnd">0</span> of <span id="docTotalItems">0</span> items
             </div>
             <div class="pagination-controls">
-              <span class="page-indicator" id="docPageIndicator">1 of 4</span>
+              <span class="page-indicator" id="docPageIndicator">1 of 1</span>
               <div class="page-arrows">
                 <button type="button" class="pagination-arrow-btn" id="docPrevPageBtn" aria-label="Previous page" disabled>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </button>
-                <button type="button" class="pagination-arrow-btn" id="docNextPageBtn" aria-label="Next page">
+                <button type="button" class="pagination-arrow-btn" id="docNextPageBtn" aria-label="Next page" disabled>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
               </div>
@@ -519,56 +273,66 @@
             
             <!-- Row 1: Full Name & Date of Birth -->
             <div class="form-field-group">
-              <label for="addFullName" class="form-label">Full Name</label>
+              <label for="addFullName" class="form-label">Full Name <span class="required-star">*</span></label>
               <input type="text" id="addFullName" name="fullName" class="form-text-input" placeholder="Enter full name" required>
             </div>
 
             <div class="form-field-group">
-              <label for="addDob" class="form-label">Date of Birth</label>
-              <input type="text" id="addDob" name="dob" class="form-text-input" placeholder="dd/mm/yyyy" required>
+              <label for="addDob" class="form-label">Date of Birth <span class="required-star">*</span></label>
+              <input type="date" id="addDob" name="dob" class="form-text-input date-input-field" min="1920-01-01" max="2008-10-03" required>
             </div>
 
             <!-- Row 2: Phone Number & Gender -->
             <div class="form-field-group">
-              <label for="addPhone" class="form-label">Phone Number</label>
+              <label for="addPhone" class="form-label">Phone Number <span class="required-star">*</span></label>
               <input type="tel" id="addPhone" name="phone" class="form-text-input" placeholder="XXXXXXXXXX" maxlength="10" required>
             </div>
 
             <div class="form-field-group">
-              <label for="addGender" class="form-label">Gender</label>
-              <input type="text" id="addGender" name="gender" class="form-text-input" placeholder="Select gender" required>
+              <label for="addGender" class="form-label">Gender <span class="required-star">*</span></label>
+              <div class="select-dropdown-container">
+                <select id="addGender" name="gender" class="form-select-input" required>
+                  <option value="" disabled selected>Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
             </div>
 
             <!-- Row 3: Email & YOE -->
             <div class="form-field-group">
-              <label for="addEmail" class="form-label">Email</label>
+              <label for="addEmail" class="form-label">Email <span class="required-star">*</span></label>
               <input type="email" id="addEmail" name="email" class="form-text-input" placeholder="Enter email" required>
             </div>
 
             <div class="form-field-group">
-              <label for="addYoe" class="form-label">YOE</label>
+              <label for="addYoe" class="form-label">YOE <span class="required-star">*</span></label>
               <input type="text" id="addYoe" name="yoe" class="form-text-input" placeholder="XX" required>
             </div>
 
             <!-- Row 4: Expertise & Area -->
             <div class="form-field-group">
-              <label for="addExpertise" class="form-label">Expertise</label>
+              <label for="addExpertise" class="form-label">Expertise <span class="required-star">*</span></label>
               <input type="text" id="addExpertise" name="expertise" class="form-text-input" placeholder="Enter expertise" required>
             </div>
 
             <div class="form-field-group">
-              <label for="addArea" class="form-label">Area</label>
+              <label for="addArea" class="form-label">Area <span class="required-star">*</span></label>
               <input type="text" id="addArea" name="area" class="form-text-input" placeholder="Enter area of specialization" required>
             </div>
 
             <!-- Row 5: Registration Number & HPR Registration Number -->
             <div class="form-field-group">
-              <label for="addReg" class="form-label">Registration Number</label>
+              <label for="addReg" class="form-label">Registration Number <span class="required-star">*</span></label>
               <input type="text" id="addReg" name="registrationNumber" class="form-text-input" placeholder="XXXX" required>
             </div>
 
             <div class="form-field-group">
-              <label for="addHpr" class="form-label">HPR Registration Number</label>
+              <label for="addHpr" class="form-label">HPR Registration Number <span class="required-star">*</span></label>
               <input type="text" id="addHpr" name="hprNumber" class="form-text-input" placeholder="XXXX" required>
             </div>
 
@@ -622,61 +386,71 @@
         <!-- Edit Doctor Form Card -->
         <section class="form-card">
           <form id="editDoctorForm" class="doctor-form-grid" novalidate>
-            <input type="hidden" id="editDoctorId" value="E001">
+            <input type="hidden" id="editDoctorId" value="">
 
             <!-- Row 1: Full Name & Date of Birth -->
             <div class="form-field-group">
-              <label for="editFullName" class="form-label">Full Name</label>
-              <input type="text" id="editFullName" name="fullName" class="form-text-input" value="Rahul Sharma" required>
+              <label for="editFullName" class="form-label">Full Name <span class="required-star">*</span></label>
+              <input type="text" id="editFullName" name="fullName" class="form-text-input" placeholder="Enter doctor name" required>
             </div>
 
             <div class="form-field-group">
-              <label for="editDob" class="form-label">Date of Birth</label>
-              <input type="text" id="editDob" name="dob" class="form-text-input" value="08/05/2002" required>
+              <label for="editDob" class="form-label">Date of Birth <span class="required-star">*</span></label>
+              <input type="date" id="editDob" name="dob" class="form-text-input date-input-field" min="1920-01-01" max="2008-10-03" required>
             </div>
 
             <!-- Row 2: Phone Number & Gender -->
             <div class="form-field-group">
-              <label for="editPhone" class="form-label">Phone Number</label>
-              <input type="tel" id="editPhone" name="phone" class="form-text-input" value="9876543210" maxlength="10" required>
+              <label for="editPhone" class="form-label">Phone Number <span class="required-star">*</span></label>
+              <input type="tel" id="editPhone" name="phone" class="form-text-input" placeholder="Enter phone number" maxlength="10" required>
             </div>
 
             <div class="form-field-group">
-              <label for="editGender" class="form-label">Gender</label>
-              <input type="text" id="editGender" name="gender" class="form-text-input" value="Male" required>
+              <label for="editGender" class="form-label">Gender <span class="required-star">*</span></label>
+              <div class="select-dropdown-container">
+                <select id="editGender" name="gender" class="form-select-input" required>
+                  <option value="" disabled selected>Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
             </div>
 
             <!-- Row 3: Email & YOE -->
             <div class="form-field-group">
-              <label for="editEmail" class="form-label">Email</label>
-              <input type="email" id="editEmail" name="email" class="form-text-input" value="rahulsharma@gmail.com" required>
+              <label for="editEmail" class="form-label">Email <span class="required-star">*</span></label>
+              <input type="email" id="editEmail" name="email" class="form-text-input" placeholder="Enter email" required>
             </div>
 
             <div class="form-field-group">
-              <label for="editYoe" class="form-label">YOE</label>
-              <input type="text" id="editYoe" name="yoe" class="form-text-input" value="12" required>
+              <label for="editYoe" class="form-label">YOE <span class="required-star">*</span></label>
+              <input type="text" id="editYoe" name="yoe" class="form-text-input" placeholder="XX" required>
             </div>
 
             <!-- Row 4: Expertise & Area -->
             <div class="form-field-group">
-              <label for="editExpertise" class="form-label">Expertise</label>
-              <input type="text" id="editExpertise" name="expertise" class="form-text-input" value="Ayurveda Physician" required>
+              <label for="editExpertise" class="form-label">Expertise <span class="required-star">*</span></label>
+              <input type="text" id="editExpertise" name="expertise" class="form-text-input" placeholder="Enter expertise" required>
             </div>
 
             <div class="form-field-group">
-              <label for="editArea" class="form-label">Area</label>
-              <input type="text" id="editArea" name="area" class="form-text-input" value="Pediatrics &amp; Gynecology" required>
+              <label for="editArea" class="form-label">Area <span class="required-star">*</span></label>
+              <input type="text" id="editArea" name="area" class="form-text-input" placeholder="Enter area of specialization" required>
             </div>
 
             <!-- Row 5: Registration Number & HPR Registration Number -->
             <div class="form-field-group">
-              <label for="editReg" class="form-label">Registration Number</label>
-              <input type="text" id="editReg" name="registrationNumber" class="form-text-input" value="1234" required>
+              <label for="editReg" class="form-label">Registration Number <span class="required-star">*</span></label>
+              <input type="text" id="editReg" name="registrationNumber" class="form-text-input" placeholder="XXXX" required>
             </div>
 
             <div class="form-field-group">
-              <label for="editHpr" class="form-label">HPR Registration Number</label>
-              <input type="text" id="editHpr" name="hprNumber" class="form-text-input" value="1234" required>
+              <label for="editHpr" class="form-label">HPR Registration Number <span class="required-star">*</span></label>
+              <input type="text" id="editHpr" name="hprNumber" class="form-text-input" placeholder="XXXX" required>
             </div>
 
             <!-- Submit Button Row -->
@@ -704,28 +478,30 @@
 
       <header class="modal-header">
         <div class="modal-header-icon-wrapper">
-          <svg class="modal-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="modal-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
         </div>
         <div class="modal-header-text">
-          <h2 id="docModalTitle" class="modal-title">View</h2>
-          <p class="modal-subtitle">Your Viewing Doctor Details</p>
+          <h2 id="docModalTitle" class="modal-title">Doctor Details</h2>
+          <p class="modal-subtitle">Complete Doctor Profile Information</p>
         </div>
       </header>
 
       <div class="modal-body">
         <div class="details-grid">
-          <div class="detail-row"><span class="detail-key">Name:</span><span class="detail-val" id="modalDocName">Dr. Nidhi Jha</span></div>
-          <div class="detail-row"><span class="detail-key">Phone Number:</span><span class="detail-val" id="modalDocPhone">9876543210</span></div>
-          <div class="detail-row"><span class="detail-key">Email:</span><span class="detail-val" id="modalDocEmail">nidhijha@gmail.com</span></div>
-          <div class="detail-row"><span class="detail-key">YOE:</span><span class="detail-val" id="modalDocYoe">12</span></div>
-          <div class="detail-row"><span class="detail-key">Expertise:</span><span class="detail-val" id="modalDocExpertise">Ayurveda Physician</span></div>
-          <div class="detail-row"><span class="detail-key">Area:</span><span class="detail-val" id="modalDocArea">Internal Medicine</span></div>
-          <div class="detail-row"><span class="detail-key">Registration Number:</span><span class="detail-val" id="modalDocReg">1234</span></div>
-          <div class="detail-row"><span class="detail-key">HPR Registration Number:</span><span class="detail-val" id="modalDocHpr">1234</span></div>
-          <div class="detail-row"><span class="detail-key">Total Appointments:</span><span class="detail-val" id="modalDocAppointments">18</span></div>
+          <div class="detail-row"><span class="detail-key">Name:</span><span class="detail-val" id="modalDocName">-</span></div>
+          <div class="detail-row"><span class="detail-key">Gender:</span><span class="detail-val" id="modalDocGender">-</span></div>
+          <div class="detail-row"><span class="detail-key">Date of Birth:</span><span class="detail-val" id="modalDocDob">-</span></div>
+          <div class="detail-row"><span class="detail-key">Phone Number:</span><span class="detail-val" id="modalDocPhone">-</span></div>
+          <div class="detail-row"><span class="detail-key">Email:</span><span class="detail-val" id="modalDocEmail">-</span></div>
+          <div class="detail-row"><span class="detail-key">YOE:</span><span class="detail-val" id="modalDocYoe">-</span></div>
+          <div class="detail-row"><span class="detail-key">Expertise:</span><span class="detail-val" id="modalDocExpertise">-</span></div>
+          <div class="detail-row"><span class="detail-key">Area:</span><span class="detail-val" id="modalDocArea">-</span></div>
+          <div class="detail-row"><span class="detail-key">Registration Number:</span><span class="detail-val" id="modalDocReg">-</span></div>
+          <div class="detail-row"><span class="detail-key">HPR Registration Number:</span><span class="detail-val" id="modalDocHpr">-</span></div>
+          <div class="detail-row"><span class="detail-key">Total Appointments:</span><span class="detail-val" id="modalDocAppointments">-</span></div>
         </div>
       </div>
 
@@ -745,21 +521,23 @@
     <div class="filter-drawer-body">
       <!-- STATUS Accordion -->
       <div class="filter-accordion" id="docStatusAccordion">
-        <button type="button" class="filter-accordion-header" id="docStatusAccordionBtn" aria-expanded="false">
+        <button type="button" class="filter-accordion-header" id="docStatusAccordionBtn" aria-expanded="false" aria-controls="docStatusAccordionContent">
           <span class="accordion-title">STATUS</span>
           <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
         <div class="filter-accordion-content" id="docStatusAccordionContent">
-          <label class="filter-checkbox-item">
-            <span class="checkbox-label">Active</span>
-            <input type="checkbox" name="docStatusFilter" value="Active" class="custom-checkbox">
-            <span class="checkbox-box"></span>
-          </label>
-          <label class="filter-checkbox-item">
-            <span class="checkbox-label">Inactive</span>
-            <input type="checkbox" name="docStatusFilter" value="Inactive" class="custom-checkbox">
-            <span class="checkbox-box"></span>
-          </label>
+          <!-- Dynamically populated from database via doctors.js -->
+        </div>
+      </div>
+
+      <!-- EXPERTISE Accordion -->
+      <div class="filter-accordion" id="docExpertiseAccordion">
+        <button type="button" class="filter-accordion-header" id="docExpertiseAccordionBtn" aria-expanded="false" aria-controls="docExpertiseAccordionContent">
+          <span class="accordion-title">EXPERTISE</span>
+          <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="filter-accordion-content" id="docExpertiseAccordionContent">
+          <!-- Dynamically populated from database via doctors.js -->
         </div>
       </div>
     </div>
@@ -771,8 +549,8 @@
     </footer>
   </aside>
 
-  <script src="api_config.js"></script>
-  <script src="dashboard.js"></script>
-  <script src="doctors.js"></script>
+  <script src="api_config.js?v=1791019479"></script>
+  <script src="dashboard.js?v=1791019479"></script>
+  <script src="doctors.js?v=1791019479"></script>
 </body>
 </html>

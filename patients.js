@@ -31,8 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusAccordionBtn = document.getElementById('statusAccordionBtn');
   const packageAccordionContent = document.getElementById('packageAccordionContent');
   const statusAccordionContent = document.getElementById('statusAccordionContent');
-  const packageCheckboxes = document.querySelectorAll('input[name="packageFilter"]');
-  const statusCheckboxes = document.querySelectorAll('input[name="statusFilter"]');
 
   // Pagination Elements
   const prevPageBtn = document.getElementById('prevPageBtn');
@@ -118,6 +116,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPatientsTable(patients);
       updatePaginationControls();
 
+      if (result.filter_options) {
+        renderDynamicFilterOptions(result.filter_options);
+      }
+
     } catch (err) {
       console.warn('Patients API Error:', err);
       patientsTableBody.innerHTML = `
@@ -130,6 +132,47 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
         </tr>
       `;
+    }
+  }
+
+  // Helper: Render Dynamic Filter Checkboxes in Drawer
+  function renderDynamicFilterOptions(filterOptions) {
+    if (packageAccordionContent && Array.isArray(filterOptions.packages)) {
+      packageAccordionContent.innerHTML = '';
+      if (filterOptions.packages.length === 0) {
+        packageAccordionContent.innerHTML = '<div style="padding: 8px 12px; color: #94a3b8; font-size: 13px;">No packages available</div>';
+      } else {
+        filterOptions.packages.forEach((pkg) => {
+          const isChecked = selectedPackages.includes(pkg);
+          const label = document.createElement('label');
+          label.className = 'filter-checkbox-item';
+          label.innerHTML = `
+            <span class="checkbox-label">${pkg}</span>
+            <input type="checkbox" name="packageFilter" value="${pkg}" class="custom-checkbox" ${isChecked ? 'checked' : ''}>
+            <span class="checkbox-box" aria-hidden="true"></span>
+          `;
+          packageAccordionContent.appendChild(label);
+        });
+      }
+    }
+
+    if (statusAccordionContent && Array.isArray(filterOptions.statuses)) {
+      statusAccordionContent.innerHTML = '';
+      if (filterOptions.statuses.length === 0) {
+        statusAccordionContent.innerHTML = '<div style="padding: 8px 12px; color: #94a3b8; font-size: 13px;">No statuses available</div>';
+      } else {
+        filterOptions.statuses.forEach((st) => {
+          const isChecked = selectedStatuses.includes(st);
+          const label = document.createElement('label');
+          label.className = 'filter-checkbox-item';
+          label.innerHTML = `
+            <span class="checkbox-label">${st}</span>
+            <input type="checkbox" name="statusFilter" value="${st}" class="custom-checkbox" ${isChecked ? 'checked' : ''}>
+            <span class="checkbox-box" aria-hidden="true"></span>
+          `;
+          statusAccordionContent.appendChild(label);
+        });
+      }
     }
   }
 
@@ -153,26 +196,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     patients.forEach(pt => {
       const ptId = pt.id;
-      const displayId = pt.patient_id || `E${String(ptId).padStart(3, '0')}`;
-      const fullName = pt.full_name || 'Patient';
+      const displayId = pt.patient_id || (ptId ? `E${String(ptId).padStart(3, '0')}` : '-');
+      const fullName = pt.full_name || '-';
       const initials = getInitials(fullName);
-      const age = pt.age || 30;
-      const pkg = pt.package_name || 'Stresscare';
+      const age = (pt.age !== undefined && pt.age !== null && pt.age !== '') ? pt.age : '-';
+      const pkg = pt.package_name || '-';
       const status = pt.status || 'Ongoing';
       const isCompleted = status.toLowerCase() === 'completed';
       const statusBadgeClass = isCompleted ? 'status-completed' : 'status-ongoing';
 
       const row = document.createElement('tr');
       row.className = 'patient-row';
-      row.setAttribute('data-id', String(ptId));
+      row.setAttribute('data-id', String(ptId || ''));
       row.setAttribute('data-patient-id', displayId);
       row.setAttribute('data-name', fullName);
-      row.setAttribute('data-phone', pt.phone_number || '');
-      row.setAttribute('data-email', pt.email || '');
+      row.setAttribute('data-phone', pt.phone_number || '-');
+      row.setAttribute('data-email', pt.email || '-');
       row.setAttribute('data-age', String(age));
-      row.setAttribute('data-gender', pt.gender || 'Male');
+      row.setAttribute('data-gender', pt.gender || '-');
       row.setAttribute('data-package', pkg);
-      row.setAttribute('data-appointments', String(pt.total_appointments || 0));
+      row.setAttribute('data-appointments', String(pt.total_appointments ?? 0));
       row.setAttribute('data-status', status);
 
       row.innerHTML = `
@@ -262,16 +305,33 @@ document.addEventListener('DOMContentLoaded', () => {
       const dropdown = parentContainer.querySelector('.action-dropdown');
       const isOpen = dropdown.classList.contains('open');
 
-      allDropdowns.forEach(d => d.classList.remove('open'));
+      allDropdowns.forEach(d => {
+        d.classList.remove('open');
+        d.classList.remove('dropup');
+      });
       allDotsBtns.forEach(b => b.classList.remove('active'));
 
       if (!isOpen) {
+        const btnRect = dotsBtn.getBoundingClientRect();
+        const dropdownHeight = 120;
+        const spaceBelow = window.innerHeight - btnRect.bottom;
+        const spaceAbove = btnRect.top;
+
+        if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+          dropdown.classList.add('dropup');
+        } else {
+          dropdown.classList.remove('dropup');
+        }
+
         dropdown.classList.add('open');
         dotsBtn.classList.add('active');
       }
     } else {
       if (!e.target.closest('.action-dropdown')) {
-        allDropdowns.forEach(d => d.classList.remove('open'));
+        allDropdowns.forEach(d => {
+          d.classList.remove('open');
+          d.classList.remove('dropup');
+        });
         allDotsBtns.forEach(b => b.classList.remove('active'));
       }
     }
@@ -432,29 +492,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Checkbox Filter Change Listeners
-  packageCheckboxes.forEach(cb => {
-    cb.addEventListener('change', () => {
-      selectedPackages = Array.from(packageCheckboxes)
-        .filter(c => c.checked)
-        .map(c => c.value);
-      fetchPatients(1);
+  // Checkbox Filter Change Listeners (Delegated)
+  if (packageAccordionContent) {
+    packageAccordionContent.addEventListener('change', (e) => {
+      if (e.target && e.target.name === 'packageFilter') {
+        selectedPackages = Array.from(packageAccordionContent.querySelectorAll('input[name="packageFilter"]:checked'))
+          .map((c) => c.value);
+        fetchPatients(1);
+      }
     });
-  });
+  }
 
-  statusCheckboxes.forEach(cb => {
-    cb.addEventListener('change', () => {
-      selectedStatuses = Array.from(statusCheckboxes)
-        .filter(c => c.checked)
-        .map(c => c.value);
-      fetchPatients(1);
+  if (statusAccordionContent) {
+    statusAccordionContent.addEventListener('change', (e) => {
+      if (e.target && e.target.name === 'statusFilter') {
+        selectedStatuses = Array.from(statusAccordionContent.querySelectorAll('input[name="statusFilter"]:checked'))
+          .map((c) => c.value);
+        fetchPatients(1);
+      }
     });
-  });
+  }
 
   if (resetFilterBtn) {
     resetFilterBtn.addEventListener('click', () => {
-      packageCheckboxes.forEach(cb => (cb.checked = false));
-      statusCheckboxes.forEach(cb => (cb.checked = false));
+      if (packageAccordionContent) {
+        packageAccordionContent.querySelectorAll('input[name="packageFilter"]').forEach((cb) => (cb.checked = false));
+      }
+      if (statusAccordionContent) {
+        statusAccordionContent.querySelectorAll('input[name="statusFilter"]').forEach((cb) => (cb.checked = false));
+      }
       selectedPackages = [];
       selectedStatuses = [];
       fetchPatients(1);

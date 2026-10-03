@@ -57,7 +57,42 @@
    Action Dropdown with Status Submenu
    ========================================================================== */
 .doctor-dropdown {
-  min-width: 155px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  bottom: auto;
+  min-width: 165px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+  padding: 6px 0;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
+}
+
+.doctor-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.doctor-dropdown.dropup {
+  top: auto !important;
+  bottom: calc(100% + 6px) !important;
+  transform: translateY(4px);
+}
+
+.doctor-dropdown.dropup.open {
+  transform: translateY(0) !important;
+}
+
+.doctor-dropdown.dropup .status-submenu {
+  top: auto;
+  bottom: 0;
 }
 
 .dropdown-item-wrapper {
@@ -70,15 +105,15 @@
   top: 0;
   right: calc(100% + 6px);
   background: #FFFFFF;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.1), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 110px;
-  z-index: 90;
+  z-index: 1001;
   opacity: 0;
   visibility: hidden;
   transform: translateX(6px);
@@ -92,6 +127,7 @@
   visibility: visible;
   transform: translateX(0);
 }
+
 
 .status-pill-opt {
   display: inline-flex;
@@ -185,6 +221,12 @@
   letter-spacing: -0.1px;
 }
 
+.required-star {
+  color: #EF4444;
+  margin-left: 3px;
+  font-weight: 700;
+}
+
 .form-text-input {
   width: 100%;
   height: 48px;
@@ -212,6 +254,76 @@
 .form-text-input:focus {
   border-color: var(--primary-teal);
   box-shadow: 0 0 0 3px var(--primary-teal-focus-ring);
+}
+
+/* Date Input & Internal Calendar Icon */
+.form-card input[type="date"].form-text-input,
+input[type="date"].form-text-input {
+  cursor: pointer;
+  padding-right: 12px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background-color: #FFFFFF;
+}
+
+.form-card input[type="date"].form-text-input::-webkit-calendar-picker-indicator,
+input[type="date"].form-text-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.65;
+  padding: 6px;
+  border-radius: 4px;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+}
+
+.form-card input[type="date"].form-text-input::-webkit-calendar-picker-indicator:hover,
+input[type="date"].form-text-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: #F1F5F9;
+}
+
+/* Select Dropdown */
+.select-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.form-select-input {
+  width: 100%;
+  height: 48px;
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0 40px 0 14px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-select-input:hover {
+  border-color: var(--border-hover);
+}
+
+.form-select-input:focus {
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px var(--primary-teal-focus-ring);
+}
+
+.select-chevron {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  pointer-events: none;
 }
 
 /* Submit Row */

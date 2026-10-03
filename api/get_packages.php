@@ -41,11 +41,25 @@ if ($connection1) {
 
     $res = @mysqli_query($connection1, "SELECT SUM(enrollments) as total FROM packages");
     if ($res && $row = mysqli_fetch_assoc($res)) { $stat_enrollments = (int)$row['total']; }
+} else {
+    $stat_total = 0;
+    $stat_active = 0;
+    $stat_enrollments = 0;
 }
 
-if ($stat_total === 0) $stat_total = 12;
-if ($stat_active === 0) $stat_active = 10;
-if ($stat_enrollments === 0) $stat_enrollments = 45;
+// Check existing columns
+$has_assigned_doctor = false;
+$has_assign_doctor = false;
+if ($connection1) {
+    $col_res = @mysqli_query($connection1, "SHOW COLUMNS FROM packages");
+    if ($col_res) {
+        while ($c = mysqli_fetch_assoc($col_res)) {
+            if ($c['Field'] === 'assigned_doctor') $has_assigned_doctor = true;
+            if ($c['Field'] === 'assign_doctor') $has_assign_doctor = true;
+        }
+    }
+}
+$doc_field_sql = $has_assign_doctor ? "assign_doctor as assigned_doctor," : ($has_assigned_doctor ? "assigned_doctor," : "NULL as assigned_doctor,");
 
 $where_clauses = [];
 $params = [];
@@ -102,6 +116,7 @@ $data_sql = "
         package_id,
         package_name,
         category,
+        {$doc_field_sql}
         duration,
         price,
         enrollments,
@@ -140,107 +155,17 @@ if ($stmt) {
 
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
+            if (empty($row['assigned_doctor'])) {
+                $row['assigned_doctor'] = $row['assign_doctor'] ?? '-';
+            }
+            $row['assign_doctor'] = $row['assigned_doctor'];
             $packages[] = $row;
         }
     }
     mysqli_stmt_close($stmt);
 }
 
-// Fallback mock records if database is empty
-if (empty($packages) && $total_records === 0 && $search === '' && $status === '') {
-    $packages = [
-        [
-            'id' => 1,
-            'package_id' => 'PKG-001',
-            'package_name' => 'Gut Reset Workshop',
-            'category' => 'Category A',
-            'duration' => '4 Weeks',
-            'price' => '5000.00',
-            'enrollments' => 10,
-            'protocol_status' => 'Added',
-            'image_url' => 'assets/package-thumb.jpg',
-            'short_description' => 'A comprehensive 4-week holistic gut microbiome reset program.',
-            'overview' => 'Restores digestive fire (Agni) and strengthens gastrointestinal lining with bespoke herbal protocols.',
-            'benefits' => 'Relieves bloating, improves digestion, boosts vitality and enhances nutrient absorption.',
-            'included' => 'Weekly Ayurvedic consultations, personalized meal plan, herbal formulations, and lifestyle chart.',
-            'diet_hydration' => 'Warm herbal water, dosha-specific digestive kichadi, and prebiotic fiber additions.',
-            'yoga_physio' => 'Pawanmuktasana series, Vajrasana post meals, and core strengthening physiotherapy.',
-            'ayurveda_dinacharya' => 'Morning warm water with ghee, tongue scraping, and early dinner routine before 7 PM.',
-            'daily_activity' => '30 minutes brisk walking in morning sunlight and 10 minutes deep belly breathing.',
-            'patient_monitoring' => 'Bi-weekly symptom score check-in via mobile portal and weight tracking.',
-            'followup_review' => 'Weekly review with senior Ayurveda physician and dietary adjustments.',
-            'status' => 'Active'
-        ],
-        [
-            'id' => 2,
-            'package_id' => 'PKG-002',
-            'package_name' => 'Reset Your Hormones',
-            'category' => 'Hormonal Health',
-            'duration' => '6 Weeks',
-            'price' => '7500.00',
-            'enrollments' => 14,
-            'protocol_status' => 'Added',
-            'image_url' => 'assets/package-thumb.jpg',
-            'short_description' => 'Balance endocrine health and manage PCOS/Thyroid symptoms naturally.',
-            'overview' => 'Ayurvedic holistic therapies combined with therapeutic yoga to balance endocrine glands.',
-            'benefits' => 'Regulates cycles, minimizes fatigue, and alleviates hormonal mood fluctuations.',
-            'included' => 'Doctor consultations, custom herbal decoctions, and guided yoga sessions.',
-            'diet_hydration' => 'Phytoestrogen-rich nutrition, anti-inflammatory seed cycling, and herbal infusions.',
-            'yoga_physio' => 'Surya Namaskar, butterfly posture, and restorative pelvic floor exercises.',
-            'ayurveda_dinacharya' => 'Abhyanga self-massage with warm sesame oil and soothing evening meditation.',
-            'daily_activity' => 'Daily 45 minutes mixed aerobic movement and yoga nidra for restful sleep.',
-            'patient_monitoring' => 'Monthly cycle tracker and hormone biomarker progression audits.',
-            'followup_review' => 'Fortnightly medical consultation and herbal formulation updates.',
-            'status' => 'Active'
-        ],
-        [
-            'id' => 3,
-            'package_id' => 'PKG-003',
-            'package_name' => 'Stresscare & Sleep Optimization',
-            'category' => 'Mental Wellness',
-            'duration' => '4 Weeks',
-            'price' => '4500.00',
-            'enrollments' => 12,
-            'protocol_status' => 'Added',
-            'image_url' => 'assets/package-thumb.jpg',
-            'short_description' => 'Deep rejuvenation therapy designed to reduce cortisol and restore sleep architecture.',
-            'overview' => 'Integrates Panchakarma Shirodhara, herbal nervine tonics, and pranayama.',
-            'benefits' => 'Lowers stress levels, relieves anxiety, and enhances sleep quality.',
-            'included' => 'Weekly stress assessment, Brahmi herbal teas, and relaxation audio guides.',
-            'diet_hydration' => 'Soothing warm almond milk with nutmeg before bed, low-caffeine diet.',
-            'yoga_physio' => 'Pranayama (Anulom Vilom, Bhramari) and gentle stretching.',
-            'ayurveda_dinacharya' => 'Nasya therapy with Anu Taila and foot massage (Padabhyanga) before sleep.',
-            'daily_activity' => 'Daily evening nature walk without electronic devices.',
-            'patient_monitoring' => 'Sleep diary monitoring and heart-rate variability (HRV) metrics.',
-            'followup_review' => 'Weekly wellness counseling and progress feedback session.',
-            'status' => 'Active'
-        ],
-        [
-            'id' => 4,
-            'package_id' => 'PKG-004',
-            'package_name' => 'Work On Metabolism & Weight Rehab',
-            'category' => 'Metabolic Care',
-            'duration' => '8 Weeks',
-            'price' => '9000.00',
-            'enrollments' => 9,
-            'protocol_status' => 'Added',
-            'image_url' => 'assets/package-thumb.jpg',
-            'short_description' => 'Kickstart basal metabolic rate with classical Ayurveda and physical conditioning.',
-            'overview' => 'Accelerates fat metabolism through Medohar formulations and tailored physiotherapy.',
-            'benefits' => 'Healthy sustainable weight loss, improved lipid profiles, and boundless energy.',
-            'included' => '1-on-1 diet chart, metabolic booster herbal formulas, and weekly body composition checks.',
-            'diet_hydration' => 'Warm spiced digestive teas (ginger, cumin, coriander) and timed eating intervals.',
-            'yoga_physio' => 'Dynamic metabolic yoga drills and resistance band physiotherapy routines.',
-            'ayurveda_dinacharya' => 'Dry herbal powder massage (Udvartana) to stimulate lymphatic flow.',
-            'daily_activity' => '10,000 steps daily target with interval pacing.',
-            'patient_monitoring' => 'Weekly inch loss tracking and metabolic health review.',
-            'followup_review' => 'Bi-weekly doctor consultations and custom recipe guides.',
-            'status' => 'Active'
-        ]
-    ];
-    $total_records = count($packages);
-    $total_pages = 1;
-}
+// Fallback mock records if database is empty - REMOVED (Dynamic DB data only)
 
 echo json_encode([
     'status' => '1',
