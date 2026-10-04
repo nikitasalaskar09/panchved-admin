@@ -933,6 +933,37 @@ body {
   stroke-width: 2;
 }
 
+/* Primary Teal Action Button */
+.btn-primary-teal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 28px;
+  background-color: var(--primary-teal, #00828A);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-md, 10px);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast, 0.18s ease);
+  box-shadow: 0 2px 6px rgba(0, 130, 138, 0.2);
+}
+
+.btn-primary-teal:hover {
+  background-color: var(--primary-teal-hover, #006D74);
+  box-shadow: 0 4px 12px rgba(0, 130, 138, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary-teal:active {
+  transform: translateY(0);
+}
+
 /* ==========================================================================
    Table Card & Base Table Styling
    ========================================================================== */

@@ -1038,6 +1038,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // 11. File Upload Dropzone Wiring
+  const addWsBrowseBtn = document.getElementById('addWsBrowseBtn');
+  const addWsImageInput = document.getElementById('addWsImageInput');
+  const addWsFileName = document.getElementById('addWsFileName');
+  if (addWsBrowseBtn && addWsImageInput) {
+    addWsBrowseBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      addWsImageInput.click();
+    });
+    addWsImageInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0] && addWsFileName) {
+        addWsFileName.textContent = e.target.files[0].name;
+      }
+    });
+  }
+
+  const editWsBrowseBtn = document.getElementById('editWsBrowseBtn');
+  const editWsImageInput = document.getElementById('editWsImageInput');
+  const editWsFileName = document.getElementById('editWsFileName');
+  if (editWsBrowseBtn && editWsImageInput) {
+    editWsBrowseBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      editWsImageInput.click();
+    });
+    editWsImageInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0] && editWsFileName) {
+        editWsFileName.textContent = e.target.files[0].name;
+      }
+    });
+  }
+
   // Initial Boot
   fetchWorkshops(1);
 });
