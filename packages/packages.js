@@ -482,6 +482,9 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.setAttribute('aria-selected', 'true');
       const activePane = document.getElementById(tabTarget);
       if (activePane) activePane.classList.add('active');
+
+      const modalBody = viewPackageModal ? viewPackageModal.querySelector('.pkg-modal-body') : null;
+      if (modalBody) modalBody.scrollTop = 0;
     });
   });
 
@@ -490,6 +493,9 @@ document.addEventListener('DOMContentLoaded', () => {
       viewPackageModal.classList.add('open');
       viewPackageModal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      viewPackageModal.scrollTop = 0;
+      const modalBody = viewPackageModal.querySelector('.pkg-modal-body');
+      if (modalBody) modalBody.scrollTop = 0;
     }
   }
 
