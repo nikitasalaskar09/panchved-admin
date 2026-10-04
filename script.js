@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
+          window.location.href = 'dashboard/dashboard.html';
         }, 500);
 
       } catch (err) {

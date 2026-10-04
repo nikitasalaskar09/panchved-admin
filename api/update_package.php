@@ -60,7 +60,7 @@ if ($connection1 && $assigned_doctor !== null) {
         }
     }
     if (!in_array('assigned_doctor', $existing_cols) && !in_array('assign_doctor', $existing_cols)) {
-        @mysqli_query($connection1, "ALTER TABLE packages ADD COLUMN `assigned_doctor` VARCHAR(150) NULL DEFAULT 'Dr. Nidhi Jha' AFTER `category`");
+        @mysqli_query($connection1, "ALTER TABLE packages ADD COLUMN `assigned_doctor` VARCHAR(150) NULL DEFAULT NULL AFTER `category`");
     }
 }
 

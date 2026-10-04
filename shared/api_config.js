@@ -3,16 +3,19 @@
  */
 
 (function () {
-  // Determine API Base URL intelligently:
-  // If running on localhost or same domain, use relative 'api'
-  // If running directly from remote digitalbolt server, use 'api'
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const subfolders = ['patients', 'doctors', 'appointments', 'dashboard', 'packages', 'workshops', 'shared'];
+  const isInSubfolder = subfolders.some(folder => window.location.pathname.includes('/' + folder + '/'));
   const isDigitalBolt = window.location.hostname.includes('digitalbolt.co');
-  
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+  const defaultApiRel = isInSubfolder ? '../api' : 'api';
+
   window.API_BASE_URL = window.API_BASE_URL || (
-    isLocal || isDigitalBolt || window.location.protocol === 'file:'
-      ? 'api' 
-      : 'https://digitalbolt.co/portfolio/nikita/panchved/api'
+    window.location.protocol === 'file:'
+      ? 'https://digitalbolt.co/portfolio/nikita/panchvedadmin/api'
+      : (isDigitalBolt || isLocal)
+        ? defaultApiRel
+        : 'https://digitalbolt.co/portfolio/nikita/panchvedadmin/api'
   );
 
   // Global Auth Helper
@@ -38,7 +41,7 @@
       } catch (_) {}
       localStorage.removeItem('panchved_user');
       localStorage.removeItem('panchved_token');
-      window.location.href = 'index.html';
+      window.location.href = isInSubfolder ? '../index.html' : 'index.html';
     },
     requireAuth: function () {
       const user = this.getUser();

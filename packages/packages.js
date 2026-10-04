@@ -123,23 +123,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Helper: Fetch Doctors list from SQL database
+  // Helper: Fetch Doctors list strictly from database doctor records (dynamic only)
   let cachedDoctors = [];
   async function loadDoctorsList() {
     const addDoctorSelect = document.getElementById('addPkgDoctor');
     const editDoctorSelect = document.getElementById('editPkgDoctor');
 
-    // Default fallback doctors matching schema.sql
-    const fallbackDoctors = [
-      { id: 1, full_name: 'Dr. Nidhi Jha', expertise: 'Ayurveda Physician' },
-      { id: 2, full_name: 'Dr. Rohit Mehra', expertise: 'Physiotherapist' },
-      { id: 3, full_name: 'Dr. Priya Patel', expertise: 'Panchakarma Specialist' },
-      { id: 4, full_name: 'Dr. Ankit Verma', expertise: 'Ayurvedic Consultant' },
-      { id: 5, full_name: 'Dr. Sneha Kulkarni', expertise: 'Neuro-Physiotherapist' }
-    ];
-
     try {
-      const res = await fetch(`${API_BASE}/get_doctors.php?limit=100&status=Active&_t=${Date.now()}`, {
+      // Query doctors directly from the database API without any static fallbacks
+      const res = await fetch(`${API_BASE}/get_doctors.php?limit=200&_t=${Date.now()}`, {
         method: 'GET',
         cache: 'no-store',
         headers: {
@@ -149,49 +141,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       const data = await res.json().catch(() => ({}));
-      if (data.status === '1' && Array.isArray(data.data) && data.data.length > 0) {
-        cachedDoctors = data.data;
+      if (data.status === '1' && Array.isArray(data.data)) {
+        // Dynamic doctors from database
+        const list = data.data;
+        const activeList = list.filter(d => !d.status || d.status.toLowerCase() === 'active');
+        cachedDoctors = activeList.length > 0 ? activeList : list;
       } else {
-        cachedDoctors = fallbackDoctors;
+        cachedDoctors = [];
       }
     } catch (e) {
-      console.warn('Could not fetch doctors from API, using fallback doctors:', e);
-      cachedDoctors = fallbackDoctors;
+      console.warn('Could not fetch doctors from API:', e);
+      cachedDoctors = [];
     }
 
     // Populate Add Select
     if (addDoctorSelect) {
       const currentVal = addDoctorSelect.value;
-      addDoctorSelect.innerHTML = '<option value="" disabled selected>Select Doctor</option>';
+      addDoctorSelect.innerHTML = cachedDoctors.length > 0
+        ? '<option value="" disabled selected>Select Doctor</option>'
+        : '<option value="" disabled selected>No doctors available</option>';
+
       cachedDoctors.forEach(doc => {
         const opt = document.createElement('option');
         opt.value = doc.full_name;
         opt.textContent = doc.expertise ? `${doc.full_name} (${doc.expertise})` : doc.full_name;
         addDoctorSelect.appendChild(opt);
       });
-      if (currentVal) addDoctorSelect.value = currentVal;
+
+      if (currentVal && Array.from(addDoctorSelect.options).some(o => o.value === currentVal)) {
+        addDoctorSelect.value = currentVal;
+      }
     }
 
     // Populate Edit Select
     if (editDoctorSelect) {
       const currentVal = editDoctorSelect.value;
-      editDoctorSelect.innerHTML = '<option value="" disabled>Select Doctor</option>';
+      editDoctorSelect.innerHTML = cachedDoctors.length > 0
+        ? '<option value="" disabled selected>Select Doctor</option>'
+        : '<option value="" disabled selected>No doctors available</option>';
+
       cachedDoctors.forEach(doc => {
         const opt = document.createElement('option');
         opt.value = doc.full_name;
         opt.textContent = doc.expertise ? `${doc.full_name} (${doc.expertise})` : doc.full_name;
         editDoctorSelect.appendChild(opt);
       });
-      if (currentVal) editDoctorSelect.value = currentVal;
+
+      if (currentVal) {
+        if (!Array.from(editDoctorSelect.options).some(o => o.value === currentVal)) {
+          const opt = document.createElement('option');
+          opt.value = currentVal;
+          opt.textContent = currentVal;
+          editDoctorSelect.appendChild(opt);
+        }
+        editDoctorSelect.value = currentVal;
+      }
     }
   }
 
   if (openAddPackageBtn) {
-    openAddPackageBtn.addEventListener('click', () => {
+    openAddPackageBtn.addEventListener('click', async () => {
       if (addPackageForm) addPackageForm.reset();
       const fn = document.getElementById('addSelectedFileName');
       if (fn) fn.textContent = '';
-      loadDoctorsList();
+      await loadDoctorsList();
       switchView(addPackageView);
     });
   }
@@ -833,7 +846,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const setVal = (id, val) => {
           const el = document.getElementById(id);
-          if (el) el.value = (val !== null && val !== undefined) ? val : '';
+          if (el) {
+            if (id === 'editPkgDoctor' && val) {
+              if (!Array.from(el.options).some(o => o.value === val)) {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = val;
+                el.appendChild(opt);
+              }
+            }
+            el.value = (val !== null && val !== undefined) ? val : '';
+          }
         };
 
         const id = currentTargetRow.getAttribute('data-id');

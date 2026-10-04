@@ -66,8 +66,10 @@ if ($connection1) {
     }
 }
 
-if ($doctor_name === '') {
-    $doctor_name = 'Dr. Rohit Mehra';
+if ($doctor_name === '' && $doctor_id <= 0) {
+    http_response_code(400);
+    echo json_encode(['status' => '0', 'message' => 'Please provide a valid doctor to reassign.']);
+    exit;
 }
 
 $update_sql = "UPDATE appointments SET doctor_name = ?, doctor_id = ? WHERE " . ($id > 0 ? "id = ?" : "appointment_id = ?");

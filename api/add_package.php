@@ -26,7 +26,7 @@ if (empty($data) && !empty($_POST)) {
 
 $package_name = trim((string) ($data['package_name'] ?? $data['name'] ?? $data['addPkgName'] ?? ''));
 $category = trim((string) ($data['category'] ?? $data['addPkgCategory'] ?? 'General'));
-$assigned_doctor = trim((string) ($data['assigned_doctor'] ?? $data['assign_doctor'] ?? $data['addPkgDoctor'] ?? $data['doctor'] ?? 'Dr. Nidhi Jha'));
+$assigned_doctor = trim((string) ($data['assigned_doctor'] ?? $data['assign_doctor'] ?? $data['addPkgDoctor'] ?? $data['doctor'] ?? ''));
 $duration = trim((string) ($data['duration'] ?? $data['addPkgDuration'] ?? '4 Weeks'));
 $price_raw = preg_replace('/[^\d.]/', '', (string) ($data['price'] ?? $data['addPkgPrice'] ?? '0'));
 $price = floatval($price_raw);
@@ -48,10 +48,6 @@ if ($package_name === '') {
     exit;
 }
 
-if ($assigned_doctor === '') {
-    $assigned_doctor = 'Dr. Nidhi Jha';
-}
-
 if (!in_array($status, ['Active', 'Inactive'], true)) {
     $status = 'Active';
 }
@@ -66,7 +62,7 @@ if ($connection1) {
         }
     }
     if (!in_array('assigned_doctor', $existing_cols) && !in_array('assign_doctor', $existing_cols)) {
-        @mysqli_query($connection1, "ALTER TABLE packages ADD COLUMN `assigned_doctor` VARCHAR(150) NULL DEFAULT 'Dr. Nidhi Jha' AFTER `category`");
+        @mysqli_query($connection1, "ALTER TABLE packages ADD COLUMN `assigned_doctor` VARCHAR(150) NULL DEFAULT NULL AFTER `category`");
     }
 }
 

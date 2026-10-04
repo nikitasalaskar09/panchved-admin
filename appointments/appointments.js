@@ -107,12 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
         doctorSelectInput.appendChild(opt);
       });
     } else {
-      ['Dr. Nidhi Jha', 'Dr. Rohit Mehra', 'Dr. Priya Patel', 'Dr. Ankit Verma'].forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        doctorSelectInput.appendChild(opt);
-      });
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.disabled = true;
+      opt.textContent = 'No doctors available';
+      doctorSelectInput.appendChild(opt);
     }
 
     if (currentVal) doctorSelectInput.value = currentVal;

@@ -119,17 +119,13 @@
   box-shadow: var(--shadow-card);
   overflow: visible !important;
   position: relative;
-  min-height: 280px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
 .table-responsive {
   width: 100%;
   overflow: visible !important;
   position: relative;
-  flex: 1 1 auto;
+  z-index: 10;
 }
 
 .patients-table {
@@ -160,10 +156,17 @@
 .patients-table tbody tr {
   border-bottom: 1px solid #F1F5F9;
   transition: background-color var(--transition-fast);
+  position: relative;
 }
 
 .patients-table tbody tr:hover {
   background-color: #FAFCFD;
+}
+
+.patients-table tbody tr.has-open-dropdown,
+.patients-table tbody tr:has(.action-dropdown.open) {
+  position: relative;
+  z-index: 50;
 }
 
 .patients-table tbody tr:last-child {
@@ -256,6 +259,11 @@
 .action-menu-container {
   position: relative;
   display: inline-block;
+}
+
+.action-menu-container.active,
+.action-menu-container:has(.action-dropdown.open) {
+  z-index: 1050;
 }
 
 .action-dots-btn {
@@ -365,7 +373,8 @@
   background: #FFFFFF;
   border-bottom-left-radius: var(--radius-lg);
   border-bottom-right-radius: var(--radius-lg);
-  margin-top: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .pagination-info {
@@ -607,16 +616,18 @@
   }
 
   .table-pagination-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 22px;
-  border-top: 1px solid var(--border-color);
-  background: #FFFFFF;
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-lg);
-  margin-top: auto;
-}
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-color);
+    background: #FFFFFF;
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+    position: relative;
+    z-index: 1;
+  }
 
   .pagination-controls {
     align-self: flex-end;

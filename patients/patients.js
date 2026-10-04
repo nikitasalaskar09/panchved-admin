@@ -294,26 +294,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 4. Action Dropdown Toggle & Outside Click
+  function closeAllActionDropdowns() {
+    document.querySelectorAll('.action-dropdown').forEach(d => {
+      d.classList.remove('open');
+      d.classList.remove('dropup');
+    });
+    document.querySelectorAll('.action-dots-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.action-menu-container').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.patient-row').forEach(r => r.classList.remove('has-open-dropdown'));
+  }
+
   document.addEventListener('click', (e) => {
     const dotsBtn = e.target.closest('.action-dots-btn');
-    const allDropdowns = document.querySelectorAll('.action-dropdown');
-    const allDotsBtns = document.querySelectorAll('.action-dots-btn');
 
     if (dotsBtn) {
       e.stopPropagation();
       const parentContainer = dotsBtn.closest('.action-menu-container');
-      const dropdown = parentContainer.querySelector('.action-dropdown');
-      const isOpen = dropdown.classList.contains('open');
+      const dropdown = parentContainer ? parentContainer.querySelector('.action-dropdown') : null;
+      const row = dotsBtn.closest('.patient-row');
+      const isOpen = dropdown && dropdown.classList.contains('open');
 
-      allDropdowns.forEach(d => {
-        d.classList.remove('open');
-        d.classList.remove('dropup');
-      });
-      allDotsBtns.forEach(b => b.classList.remove('active'));
+      closeAllActionDropdowns();
 
-      if (!isOpen) {
+      if (!isOpen && dropdown) {
         const btnRect = dotsBtn.getBoundingClientRect();
-        const dropdownHeight = 120;
+        const dropdownHeight = 110;
         const spaceBelow = window.innerHeight - btnRect.bottom;
         const spaceAbove = btnRect.top;
 
@@ -325,14 +330,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dropdown.classList.add('open');
         dotsBtn.classList.add('active');
+        if (parentContainer) parentContainer.classList.add('active');
+        if (row) row.classList.add('has-open-dropdown');
       }
     } else {
       if (!e.target.closest('.action-dropdown')) {
-        allDropdowns.forEach(d => {
-          d.classList.remove('open');
-          d.classList.remove('dropup');
-        });
-        allDotsBtns.forEach(b => b.classList.remove('active'));
+        closeAllActionDropdowns();
       }
     }
   });
@@ -363,8 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal();
       }
 
-      document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('open'));
-      document.querySelectorAll('.action-dots-btn').forEach(b => b.classList.remove('active'));
+      closeAllActionDropdowns();
     }
   });
 
@@ -401,8 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const patientId = row.getAttribute('data-patient-id');
       const patientName = row.getAttribute('data-name') || 'this patient';
 
-      document.querySelectorAll('.action-dropdown').forEach(d => d.classList.remove('open'));
-      document.querySelectorAll('.action-dots-btn').forEach(b => b.classList.remove('active'));
+      closeAllActionDropdowns();
 
       if (confirm(`Are you sure you want to remove patient "${patientName}"?`)) {
         try {

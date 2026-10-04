@@ -29,7 +29,7 @@ $subtitle = trim((string) ($data['subtitle'] ?? $data['workshop_subtitle'] ?? $d
 $assign_speaker = trim((string) ($data['assign_speaker'] ?? $data['assigned_speaker'] ?? $data['assignSpeaker'] ?? ''));
 $meet_link = trim((string) ($data['meet_link'] ?? $data['meetLink'] ?? ''));
 
-$instructor = trim((string) ($data['instructor'] ?? ($assign_speaker !== '' ? $assign_speaker : ($data['speaker'] ?? 'Dr. Nidhi Jha'))));
+$instructor = trim((string) ($data['instructor'] ?? ($assign_speaker !== '' ? $assign_speaker : ($data['speaker'] ?? ''))));
 $speaker = trim((string) ($data['speaker'] ?? ($assign_speaker !== '' ? $assign_speaker : $instructor)));
 if ($assign_speaker === '') {
     $assign_speaker = $speaker ?: $instructor;

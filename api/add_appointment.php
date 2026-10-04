@@ -25,7 +25,7 @@ if (empty($data) && !empty($_POST)) {
 }
 
 $patient_name = trim((string) ($data['patient_name'] ?? $data['patientName'] ?? ''));
-$doctor_name = trim((string) ($data['doctor_name'] ?? $data['doctorName'] ?? 'Dr. Nidhi Jha'));
+$doctor_name = trim((string) ($data['doctor_name'] ?? $data['doctorName'] ?? ''));
 $package_name = trim((string) ($data['package_name'] ?? $data['package'] ?? 'Stress Management'));
 $appointment_date = trim((string) ($data['appointment_date'] ?? $data['date'] ?? date('Y-m-d')));
 $appointment_time = trim((string) ($data['appointment_time'] ?? $data['time'] ?? '8:00 AM'));
