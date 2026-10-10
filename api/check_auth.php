@@ -17,7 +17,7 @@ if (preg_match('/Bearer\s(\S+)/', $auth_header, $matches)) {
     $bearer_token = $matches[1];
 }
 
-$user = $_SESSION['panchved_user'] ?? null;
+$user = $_SESSION['ocayur_user'] ?? $_SESSION['panchved_user'] ?? null;
 
 if (!$user && $bearer_token) {
     $parts = explode('.', $bearer_token);
@@ -36,8 +36,8 @@ if ($user) {
         'user' => [
             'id' => $user['id'] ?? 1,
             'username' => $user['username'] ?? 'admin',
-            'full_name' => $user['full_name'] ?? 'John Doe',
-            'email' => $user['email'] ?? 'admin@panchved.com',
+            'full_name' => $user['full_name'] ?? 'Admin',
+            'email' => $user['email'] ?? 'admin@ocayur.com',
             'role' => $user['role'] ?? 'Admin'
         ]
     ]);

@@ -1,5 +1,5 @@
 /**
- * Panchved Login Page - Interactive Handlers & REST API Integration
+ * Ocayur Login Page - Interactive Handlers & REST API Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -149,10 +149,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Store user and token
-        if (window.PanchvedAuth) {
-          window.PanchvedAuth.setUser(result.user, result.token);
+        const auth = window.OcayurAuth || window.PanchvedAuth;
+        if (auth) {
+          auth.setUser(result.user, result.token);
         } else {
-          localStorage.setItem('panchved_user', JSON.stringify(result.user));
+          const serialized = JSON.stringify(result.user);
+          localStorage.setItem('ocayur_user', serialized);
+          localStorage.setItem('ocayur_token', result.token || '');
+          localStorage.setItem('panchved_user', serialized);
           localStorage.setItem('panchved_token', result.token || '');
         }
 

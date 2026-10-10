@@ -878,7 +878,7 @@
 .reset-filter-btn {
   width: 100%;
   height: 46px;
-  background-color: #941854; /* Panchved Brand Magenta matching design */
+  background-color: var(--brand-accent, #723F1E); /* Ocayur Earth Brown Accent matching brand design */
   color: #FFFFFF;
   border: none;
   border-radius: var(--radius-md);
@@ -886,22 +886,22 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(148, 24, 84, 0.25);
+  box-shadow: 0 2px 8px rgba(114, 63, 30, 0.25);
   transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .reset-filter-btn:hover {
-  background-color: #7D0E44;
-  box-shadow: 0 4px 12px rgba(148, 24, 84, 0.35);
+  background-color: #5B3218;
+  box-shadow: 0 4px 12px rgba(114, 63, 30, 0.35);
 }
 
 .reset-filter-btn:active {
-  background-color: #6B0838;
+  background-color: #4A2813;
   transform: scale(0.99);
 }
 
 .reset-filter-btn:focus-visible {
-  outline: 2px solid #941854;
+  outline: 2px solid var(--brand-accent, #723F1E);
   outline-offset: 2px;
 }
 

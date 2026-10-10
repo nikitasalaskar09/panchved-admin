@@ -83,12 +83,12 @@ if ($user) {
     }
 } else {
     // Fallback: Default Admin access if DB user table is not yet seeded
-    if (($clean_phone === '9876543210' || strtolower($login_id) === 'admin@panchved.com' || strtolower($login_id) === 'admin') && $password === 'admin123') {
+    if (($clean_phone === '9876543210' || strtolower($login_id) === 'admin@ocayur.com' || strtolower($login_id) === 'admin@panchved.com' || strtolower($login_id) === 'admin') && $password === 'admin123') {
         $user = [
             'id' => 1,
             'username' => 'admin',
-            'full_name' => 'John Doe',
-            'email' => 'admin@panchved.com',
+            'full_name' => 'Admin',
+            'email' => 'admin@ocayur.com',
             'phone_number' => '9876543210',
             'role' => 'Admin',
             'status' => 'Active'
@@ -139,6 +139,8 @@ if ($connection1 && !empty($user['id'])) {
 if (session_status() === PHP_SESSION_NONE) {
     @session_start();
 }
+$_SESSION['ocayur_user'] = $user;
+$_SESSION['ocayur_token'] = $token;
 $_SESSION['panchved_user'] = $user;
 $_SESSION['panchved_token'] = $token;
 

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Panchved Complete Ayurved & Physiotherapy Rehab Center
+-- Ocayur - Ayurveda Lifestyle
 -- Comprehensive Database Schema SQL Script
 -- Database: jewrzsmy_panchved / jcwrzsmy_panchved
 -- ============================================================================
@@ -33,9 +33,9 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Sample Seed Data for Users (Password: admin123)
 -- bcrypt hash for 'admin123': $2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm
 INSERT INTO `users` (`id`, `username`, `full_name`, `email`, `phone_number`, `password_hash`, `role`, `status`) VALUES
-(1, 'admin', 'John Doe', 'admin@panchved.com', '9876543210', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 'Admin', 'Active'),
+(1, 'admin', 'Admin', 'admin@ocayur.com', '9876543210', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 'Admin', 'Active'),
 (2, 'drnidhi', 'Dr. Nidhi Jha', 'drnidhi@gmail.com', '9876543211', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 'Doctor', 'Active'),
-(3, 'staff', 'Reception Desk', 'staff@panchved.com', '9876543212', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 'Staff', 'Active')
+(3, 'staff', 'Reception Desk', 'staff@ocayur.com', '9876543212', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 'Staff', 'Active')
 ON DUPLICATE KEY UPDATE `full_name` = VALUES(`full_name`), `password_hash` = VALUES(`password_hash`);
 
 
@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS `workshops` (
   `attendee_type` VARCHAR(100) NOT NULL DEFAULT 'Doctor',
   `date` DATE NOT NULL,
   `time` VARCHAR(50) NOT NULL DEFAULT '8:00 AM',
-  `location` VARCHAR(150) NOT NULL DEFAULT 'Panchved Center / Hybrid Online',
+  `location` VARCHAR(150) NOT NULL DEFAULT 'Ocayur Center / Hybrid Online',
   `capacity` INT(11) NOT NULL DEFAULT 50,
   `enrolled` INT(11) NOT NULL DEFAULT 0,
   `registrations` INT(11) NOT NULL DEFAULT 0,
@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS `workshops` (
 
 -- Sample Seed Data for Workshops
 INSERT INTO `workshops` (`id`, `workshop_id`, `title`, `subtitle`, `assign_speaker`, `meet_link`, `instructor`, `speaker`, `attendee_type`, `date`, `time`, `location`, `capacity`, `registrations`, `fee`, `about`, `status`) VALUES
-(1, 'WS-001', 'Ayurveda Wellness Workshop', 'Holistic Health & Ayurveda Insights', 'Dr. Nidhi Jha', 'https://meet.google.com/xyz-abcd-efg', 'Dr. Nidhi Jha', 'Dr. Nidhi Jha & Team', 'Doctor', DATE_ADD(CURDATE(), INTERVAL 7 DAY), '8:00 AM', 'Panchved Center Hall A', 50, 24, 500.00, 'Comprehensive immersion into clinical Ayurveda protocols, pulse diagnostics, and preventive wellness strategies for modern lifestyles.', 'Upcoming'),
+(1, 'WS-001', 'Ayurveda Wellness Workshop', 'Holistic Health & Ayurveda Insights', 'Dr. Nidhi Jha', 'https://meet.google.com/xyz-abcd-efg', 'Dr. Nidhi Jha', 'Dr. Nidhi Jha & Team', 'Doctor', DATE_ADD(CURDATE(), INTERVAL 7 DAY), '8:00 AM', 'Ocayur Center Hall A', 50, 24, 500.00, 'Comprehensive immersion into clinical Ayurveda protocols, pulse diagnostics, and preventive wellness strategies for modern lifestyles.', 'Upcoming'),
 (2, 'WS-002', 'Physiotherapy & Spine Rehab Masterclass', 'Holistic Health & Ayurveda Insights', 'Dr. Rohit Mehra', 'https://meet.google.com/xyz-abcd-efg', 'Dr. Rohit Mehra', 'Dr. Rohit Mehra', 'Doctor', DATE_ADD(CURDATE(), INTERVAL 14 DAY), '10:00 AM', 'Rehab Studio 2', 40, 18, 750.00, 'Hands-on practical workshop covering advanced musculoskeletal assessment, postural restoration, and spine decompression therapies.', 'Upcoming'),
 (3, 'WS-003', 'Gut Microbiome & Dinacharya Summit', 'Holistic Health & Ayurveda Insights', 'Dr. Priya Patel', 'https://meet.google.com/xyz-abcd-efg', 'Dr. Priya Patel', 'Dr. Priya Patel', 'Both', DATE_ADD(CURDATE(), INTERVAL 21 DAY), '9:00 AM', 'Auditorium & Live Stream', 100, 42, 350.00, 'Explore the bridge between ancient Ayurvedic gut cleansing and cutting-edge microbiome science with actionable nutrition guides.', 'Upcoming'),
 (4, 'WS-004', 'Corporate Stress Management Webinar', 'Holistic Health & Ayurveda Insights', 'Dr. Ankit Verma', 'https://meet.google.com/xyz-abcd-efg', 'Dr. Ankit Verma', 'Dr. Ankit Verma', 'Patient', DATE_SUB(CURDATE(), INTERVAL 10 DAY), '3:00 PM', 'Online Zoom Room', 75, 60, 0.00, 'Practical breathwork, desk ergonomic routines, and mindful dietary habits for high-stress corporate environments.', 'Completed')

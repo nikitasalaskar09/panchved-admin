@@ -70,7 +70,7 @@ $registrations = intval($data['registrations'] ?? $data['enrolled'] ?? 0);
 $fee_raw = preg_replace('/[^\d.]/', '', (string) ($data['fee'] ?? $data['price'] ?? '0'));
 $fee = floatval($fee_raw);
 $about = trim((string) ($data['about'] ?? ''));
-$location = trim((string) ($data['location'] ?? 'Panchved Center Hall A'));
+$location = trim((string) ($data['location'] ?? 'Ocayur Center Hall A'));
 $status = ucfirst(strtolower(trim((string) ($data['status'] ?? 'Upcoming'))));
 
 if ($title === '') {

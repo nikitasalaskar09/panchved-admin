@@ -1,32 +1,48 @@
 /* ==========================================================================
-   Panchved Admin - Dashboard Styles
-   Theme: Healthcare / Ayurveda & Physiotherapy Management
+   Ocayur Admin - Dashboard Styles
+   Theme: Ocayur Ayurveda Lifestyle Management (Botanical Green & Terracotta)
    ========================================================================== */
 
 :root {
-  /* Brand Color Palette */
-  --primary-teal: #00828A;
-  --primary-teal-hover: #006D74;
-  --primary-teal-light: rgba(0, 130, 138, 0.08);
-  --primary-teal-focus-ring: rgba(0, 130, 138, 0.18);
+  /* Official Brand Color Palette - Ocayur Ayurveda Lifestyle (@studionori.co) */
+  --brand-primary: #484831;          /* Official Deep Olive Green */
+  --brand-primary-hover: #373725;    /* Deeper Olive */
+  --brand-primary-active: #28281B;   /* Darkest Olive */
+  --brand-primary-light: rgba(72, 72, 49, 0.08);
+  --brand-primary-subtle: #F4F4EE;
+  --brand-primary-focus-ring: rgba(72, 72, 49, 0.22);
   
-  --brand-magenta: #941854;
-  --brand-blue: #0F647E;
+  --brand-accent: #723F1E;           /* Official Warm Earth Brown / Terracotta */
+  --brand-accent-hover: #5B3218;     /* Deeper Earth Brown */
+  --brand-accent-light: rgba(114, 63, 30, 0.08);
+  --brand-accent-focus-ring: rgba(114, 63, 30, 0.22);
   
-  /* Neutral Color Palette */
-  --bg-page: #FAFBFD;
+  --brand-slate: #3B5042;            /* Sage Slate */
+  --required-red: #D32F2F;           /* Alert Red */
+  
+  /* Backwards-compatibility aliases for existing selectors */
+  --primary-teal: var(--brand-primary);
+  --primary-teal-hover: var(--brand-primary-hover);
+  --primary-teal-active: var(--brand-primary-active);
+  --primary-teal-light: var(--brand-primary-light);
+  --primary-teal-focus-ring: var(--brand-primary-focus-ring);
+  --brand-magenta: var(--brand-accent);
+  --brand-blue: var(--brand-slate);
+  
+  /* Neutral Color Palette - Official Ivory Linen #fff7ec */
+  --bg-page: #FFF7EC;
   --bg-card: #FFFFFF;
   --bg-sidebar: #FFFFFF;
   
-  --text-primary: #1E293B;
-  --text-secondary: #64748B;
-  --text-muted: #94A3B8;
+  --text-primary: #2B2B1E;
+  --text-secondary: #5C5A48;
+  --text-muted: #8E8A76;
   
   /* Borders & Dividers */
-  --border-color: #E8EDF2;
-  --border-subtle: #F1F5F9;
-  --border-hover: #CBD5E1;
-  --grid-line-color: #E2E8F0;
+  --border-color: #ECE3D2;
+  --border-subtle: #F7EFE3;
+  --border-hover: #DCD0BC;
+  --grid-line-color: #EFE7DA;
   
   /* UI Metrics */
   --sidebar-width: 250px;
@@ -37,12 +53,13 @@
   --radius-pill: 50px;
   
   /* Shadows */
-  --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 4px rgba(0, 0, 0, 0.02);
-  --shadow-tooltip: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-subtle: 0 2px 10px rgba(72, 72, 49, 0.03), 0 1px 3px rgba(72, 72, 49, 0.02);
+  --shadow-card: 0 4px 20px rgba(72, 72, 49, 0.04), 0 1px 4px rgba(72, 72, 49, 0.02);
+  --shadow-tooltip: 0 6px 20px rgba(72, 72, 49, 0.12);
   
-  /* Typography */
-  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Typography - Proxima Nova Alt from brand guide */
+  --font-family: 'Proxima Nova Alt', 'Proxima Nova', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
   --transition-fast: 0.18s ease;
   --transition-normal: 0.25s ease;
 }
@@ -112,9 +129,11 @@ body {
 }
 
 .mobile-logo-title .brand-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--brand-magenta);
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--brand-primary);
 }
 
 .user-avatar-sm {
@@ -187,15 +206,16 @@ body {
 }
 
 .brand-logo:hover {
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 
 .brand-logo-img {
-  width: 105px;
+  width: 150px;
   max-width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(44, 62, 45, 0.05));
 }
 
 /* Sidebar Nav Items */
@@ -219,7 +239,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10.5px 16px;
+  padding: 11px 16px;
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 14.5px;
@@ -237,15 +257,15 @@ body {
 }
 
 .nav-link:hover {
-  background-color: var(--primary-teal-light);
-  color: var(--primary-teal);
+  background-color: var(--brand-primary-light);
+  color: var(--brand-primary);
 }
 
 .nav-link.active {
-  background-color: var(--primary-teal);
+  background-color: var(--brand-primary);
   color: #FFFFFF;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 130, 138, 0.25);
+  box-shadow: 0 4px 14px rgba(44, 62, 45, 0.22);
 }
 
 .nav-link.active .nav-icon {
@@ -266,8 +286,8 @@ body {
   width: 100%;
   padding: 10px 14px;
   background-color: #FFFFFF;
-  border: 1.5px solid var(--primary-teal);
-  color: var(--primary-teal);
+  border: 1.5px solid var(--brand-primary);
+  color: var(--brand-primary);
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
@@ -281,9 +301,9 @@ body {
 }
 
 .logout-btn:hover {
-  background-color: var(--primary-teal);
+  background-color: var(--brand-primary);
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(0, 130, 138, 0.2);
+  box-shadow: 0 4px 12px rgba(44, 62, 45, 0.2);
 }
 
 /* ==========================================================================
@@ -307,10 +327,11 @@ body {
 }
 
 .header-titles .page-title {
-  font-size: 26px;
-  font-weight: 800;
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.4px;
+  letter-spacing: 0.2px;
   line-height: 1.2;
 }
 
@@ -338,15 +359,15 @@ body {
 
 .user-profile-badge:hover {
   border-color: var(--border-hover);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 12px rgba(44, 62, 45, 0.06);
 }
 
 .avatar-circle {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background-color: #B2DFDB;
-  color: #00796B;
+  background-color: var(--brand-primary-light);
+  color: var(--brand-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -462,10 +483,11 @@ body {
 }
 
 .chart-title {
-  font-size: 18px;
+  font-family: var(--font-serif);
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.2px;
+  letter-spacing: 0.2px;
 }
 
 /* Filter Dropdown */
@@ -933,7 +955,7 @@ body {
   stroke-width: 2;
 }
 
-/* Primary Teal Action Button */
+/* Primary Brand Action Button */
 .btn-primary-teal {
   display: inline-flex;
   align-items: center;
@@ -941,7 +963,7 @@ body {
   gap: 8px;
   height: 48px;
   padding: 0 28px;
-  background-color: var(--primary-teal, #00828A);
+  background-color: var(--brand-primary);
   color: #FFFFFF;
   border: none;
   border-radius: var(--radius-md, 10px);
@@ -951,12 +973,12 @@ body {
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--transition-fast, 0.18s ease);
-  box-shadow: 0 2px 6px rgba(0, 130, 138, 0.2);
+  box-shadow: 0 4px 14px rgba(44, 62, 45, 0.22);
 }
 
 .btn-primary-teal:hover {
-  background-color: var(--primary-teal-hover, #006D74);
-  box-shadow: 0 4px 12px rgba(0, 130, 138, 0.3);
+  background-color: var(--brand-primary-hover);
+  box-shadow: 0 6px 18px rgba(44, 62, 45, 0.3);
   transform: translateY(-1px);
 }
 
@@ -1654,7 +1676,7 @@ body {
 .reset-filter-btn {
   width: 100%;
   height: 46px;
-  background-color: #941854;
+  background-color: var(--brand-accent, #723F1E);
   color: #FFFFFF;
   border: none;
   border-radius: var(--radius-md);
@@ -1662,22 +1684,22 @@ body {
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(148, 24, 84, 0.25);
+  box-shadow: 0 2px 8px rgba(114, 63, 30, 0.25);
   transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .reset-filter-btn:hover {
-  background-color: #7D0E44;
-  box-shadow: 0 4px 12px rgba(148, 24, 84, 0.35);
+  background-color: #5B3218;
+  box-shadow: 0 4px 12px rgba(114, 63, 30, 0.35);
 }
 
 .reset-filter-btn:active {
-  background-color: #6B0838;
+  background-color: #4A2813;
   transform: scale(0.99);
 }
 
 .reset-filter-btn:focus-visible {
-  outline: 2px solid #941854;
+  outline: 2px solid var(--brand-accent, #723F1E);
   outline-offset: 2px;
 }
 

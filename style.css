@@ -1,45 +1,60 @@
 /* ==========================================================================
-   Panchved Admin / Client Portal - Login Page Styles
-   Design: Healthcare & Ayurveda/Physiotherapy Center Theme
+   Ocayur Admin / Client Portal - Login Page Styles
+   Theme: Ocayur Ayurveda Lifestyle (Natural Botanical Green & Warm Terracotta)
    ========================================================================== */
 
 :root {
-  /* Brand Color Palette */
-  --primary-teal: #00828A;
-  --primary-teal-hover: #006D74;
-  --primary-teal-active: #005A60;
-  --primary-teal-light: rgba(0, 130, 138, 0.08);
-  --primary-teal-focus-ring: rgba(0, 130, 138, 0.18);
+  /* Official Brand Color Palette - Ocayur Ayurveda Lifestyle (@studionori.co) */
+  --brand-primary: #484831;          /* Official Deep Olive Green */
+  --brand-primary-hover: #373725;    /* Deeper Olive */
+  --brand-primary-active: #28281B;   /* Darkest Olive */
+  --brand-primary-light: rgba(72, 72, 49, 0.08);
+  --brand-primary-subtle: #F4F4EE;
+  --brand-primary-focus-ring: rgba(72, 72, 49, 0.22);
   
-  --brand-magenta: #941854;
-  --brand-blue: #0F647E;
-  --required-red: #E53E3E;
+  --brand-accent: #723F1E;           /* Official Warm Earth Brown / Terracotta */
+  --brand-accent-hover: #5B3218;     /* Deeper Earth Brown */
+  --brand-accent-light: rgba(114, 63, 30, 0.08);
+  --brand-accent-focus-ring: rgba(114, 63, 30, 0.22);
   
-  /* Neutral Palette */
-  --bg-page: #FFFFFF;
+  --brand-slate: #3B5042;            /* Sage Slate */
+  --required-red: #D32F2F;           /* Alert Red */
+  
+  /* Backwards-compatibility aliases */
+  --primary-teal: var(--brand-primary);
+  --primary-teal-hover: var(--brand-primary-hover);
+  --primary-teal-active: var(--brand-primary-active);
+  --primary-teal-light: var(--brand-primary-light);
+  --primary-teal-focus-ring: var(--brand-primary-focus-ring);
+  --brand-magenta: var(--brand-accent);
+  --brand-blue: var(--brand-slate);
+  
+  /* Neutral Palette - Official Ivory Linen #fff7ec */
+  --bg-page: #FFF7EC;
   --bg-card: #FFFFFF;
-  --text-primary: #1E293B;
-  --text-secondary: #64748B;
-  --text-muted: #94A3B8;
+  --text-primary: #2B2B1E;
+  --text-secondary: #5C5A48;
+  --text-muted: #8E8A76;
   
   /* Borders & Dividers */
-  --border-color: #E2E8F0;
-  --border-color-hover: #CBD5E1;
-  --border-divider: #E2E8F0;
-  --card-border: #E8EDF2;
+  --border-color: #ECE3D2;
+  --border-color-hover: #DCD0BC;
+  --border-divider: #ECE3D2;
+  --card-border: #EFE7DA;
   
   /* UI Metrics */
   --radius-sm: 6px;
   --radius-md: 8px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   
   /* Shadows */
-  --card-shadow: 0 4px 25px -4px rgba(0, 0, 0, 0.04), 0 2px 10px -2px rgba(0, 0, 0, 0.02);
-  --input-focus-shadow: 0 0 0 3.5px var(--primary-teal-focus-ring);
+  --card-shadow: 0 10px 36px -10px rgba(72, 72, 49, 0.08), 0 4px 14px -4px rgba(72, 72, 49, 0.04);
+  --input-focus-shadow: 0 0 0 3.5px var(--brand-primary-focus-ring);
   
-  /* Typography */
-  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Typography - Proxima Nova Alt as specified in brand guide */
+  --font-family: 'Proxima Nova Alt', 'Proxima Nova', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
   --transition-fast: 0.18s ease;
   --transition-normal: 0.25s ease;
 }
@@ -59,6 +74,7 @@ html {
 body {
   font-family: var(--font-family);
   background-color: var(--bg-page);
+  background-image: radial-gradient(circle at 50% 15%, #FAF9F6 0%, #F5F3ED 100%);
   color: var(--text-primary);
   min-height: 100vh;
   display: flex;
@@ -77,7 +93,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 /* ==========================================================================
@@ -88,7 +104,7 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   user-select: none;
 }
 
@@ -100,15 +116,16 @@ body {
 }
 
 .brand-logo:hover {
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 
 .brand-logo-img {
-  width: 120px;
+  width: 175px;
   max-width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(44, 62, 45, 0.06));
 }
 
 /* ==========================================================================
@@ -120,17 +137,19 @@ body {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--card-shadow);
-  padding: 36px 36px 28px;
+  padding: 38px 36px 30px;
   transition: box-shadow var(--transition-normal);
 }
 
 .card-title {
-  color: var(--primary-teal);
-  font-size: 26px;
+  color: var(--brand-primary);
+  font-family: var(--font-serif);
+  font-size: 32px;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 26px;
-  letter-spacing: -0.4px;
+  margin-bottom: 24px;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
 }
 
 /* Form Layout */
@@ -355,7 +374,7 @@ body {
 .submit-btn {
   width: 100%;
   height: 48px;
-  background-color: var(--primary-teal);
+  background-color: var(--brand-primary);
   color: #FFFFFF;
   border: none;
   border-radius: var(--radius-md);
@@ -368,22 +387,22 @@ body {
   justify-content: center;
   gap: 8px;
   margin-top: 4px;
-  box-shadow: 0 2px 6px rgba(0, 130, 138, 0.2);
+  box-shadow: 0 4px 14px rgba(44, 62, 45, 0.22);
   transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .submit-btn:hover {
-  background-color: var(--primary-teal-hover);
-  box-shadow: 0 4px 12px rgba(0, 130, 138, 0.28);
+  background-color: var(--brand-primary-hover);
+  box-shadow: 0 6px 18px rgba(44, 62, 45, 0.3);
 }
 
 .submit-btn:active {
-  background-color: var(--primary-teal-active);
+  background-color: var(--brand-primary-active);
   transform: scale(0.99);
 }
 
 .submit-btn:focus-visible {
-  outline: 2px solid var(--primary-teal);
+  outline: 2px solid var(--brand-accent);
   outline-offset: 2px;
 }
 
@@ -403,19 +422,19 @@ body {
 }
 
 .legal-link {
-  color: var(--primary-teal);
+  color: var(--brand-accent);
   text-decoration: none;
   font-weight: 600;
   transition: color var(--transition-fast);
 }
 
 .legal-link:hover {
-  color: var(--primary-teal-hover);
+  color: var(--brand-accent-hover);
   text-decoration: underline;
 }
 
 .legal-link:focus-visible {
-  outline: 2px solid var(--primary-teal);
+  outline: 2px solid var(--brand-accent);
   outline-offset: 2px;
   border-radius: 2px;
 }

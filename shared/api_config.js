@@ -1,5 +1,5 @@
 /**
- * Panchved Admin - Shared API Config & Session Utilities
+ * Ocayur Admin - Shared API Config & Session Utilities
  */
 
 (function () {
@@ -18,27 +18,36 @@
         : 'https://digitalbolt.co/portfolio/nikita/panchvedadmin/api'
   );
 
-  // Global Auth Helper
-  window.PanchvedAuth = {
+  // Global Auth Helper for Ocayur
+  window.OcayurAuth = {
     getUser: function () {
       try {
-        const u = localStorage.getItem('panchved_user');
+        const u = localStorage.getItem('ocayur_user') || localStorage.getItem('panchved_user');
         return u ? JSON.parse(u) : null;
       } catch (e) {
         return null;
       }
     },
     getToken: function () {
-      return localStorage.getItem('panchved_token') || '';
+      return localStorage.getItem('ocayur_token') || localStorage.getItem('panchved_token') || '';
     },
     setUser: function (user, token) {
-      if (user) localStorage.setItem('panchved_user', JSON.stringify(user));
-      if (token) localStorage.setItem('panchved_token', token);
+      if (user) {
+        const serialized = JSON.stringify(user);
+        localStorage.setItem('ocayur_user', serialized);
+        localStorage.setItem('panchved_user', serialized);
+      }
+      if (token) {
+        localStorage.setItem('ocayur_token', token);
+        localStorage.setItem('panchved_token', token);
+      }
     },
     logout: async function () {
       try {
         await fetch(`${window.API_BASE_URL}/logout.php`, { method: 'POST' }).catch(() => {});
       } catch (_) {}
+      localStorage.removeItem('ocayur_user');
+      localStorage.removeItem('ocayur_token');
       localStorage.removeItem('panchved_user');
       localStorage.removeItem('panchved_token');
       window.location.href = isInSubfolder ? '../index.html' : 'index.html';
@@ -68,6 +77,9 @@
     }
   };
 
+  // Backwards compatibility alias
+  window.PanchvedAuth = window.OcayurAuth;
+
   // Toast notification helper for all screens
   window.showAppToast = function (message, type = 'success') {
     const existingToast = document.querySelector('.app-toast');
@@ -79,7 +91,7 @@
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: ${type === 'success' ? '#00828A' : type === 'error' ? '#ef4444' : '#0F647E'};
+      background: ${type === 'success' ? '#484831' : type === 'error' ? '#ef4444' : '#723F1E'};
       color: #fff;
       padding: 13px 22px;
       border-radius: 8px;
@@ -335,7 +347,7 @@
           </svg>
         </div>
         <h3 id="logoutModalTitle" class="logout-modal-title">Log Out</h3>
-        <p class="logout-modal-desc">Are you sure you want to log out? You will need to sign in again to access the Panchved Admin panel.</p>
+        <p class="logout-modal-desc">Are you sure you want to log out? You will need to sign in again to access the Ocayur Admin panel.</p>
         <div class="logout-modal-actions">
           <button type="button" class="logout-modal-btn btn-cancel" id="cancelLogoutBtn">Cancel</button>
           <button type="button" class="logout-modal-btn btn-confirm" id="confirmLogoutBtn">
@@ -374,7 +386,7 @@
           <span>Logging out...</span>
         `;
         if (cancelBtn) cancelBtn.disabled = true;
-        await window.PanchvedAuth.logout();
+        await (window.OcayurAuth || window.PanchvedAuth).logout();
       });
     }
   }
