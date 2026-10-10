@@ -12,10 +12,10 @@
 
   window.API_BASE_URL = window.API_BASE_URL || (
     window.location.protocol === 'file:'
-      ? 'https://digitalbolt.co/portfolio/nikita/panchvedadmin/api'
+      ? 'https://admin.ocayur.com/api'
       : (isDigitalBolt || isLocal)
         ? defaultApiRel
-        : 'https://digitalbolt.co/portfolio/nikita/panchvedadmin/api'
+        : 'https://admin.ocayur.com/api'
   );
 
   // Global Auth Helper for Ocayur
