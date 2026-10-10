@@ -323,18 +323,18 @@
             <div class="form-grid-2col">
               <div class="form-group">
                 <label for="addPkgName" class="form-label">Package Name <span class="required-star">*</span></label>
-                <input type="text" id="addPkgName" class="form-control-input" placeholder="Enter Package name" required>
+                <input type="text" id="addPkgName" class="form-control-input" placeholder="Enter Package name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
               </div>
 
               <div class="form-group">
                 <label for="addPkgCategory" class="form-label">Package Category <span class="required-star">*</span></label>
-                <input type="text" id="addPkgCategory" class="form-control-input" placeholder="Select category" required>
+                <input type="text" id="addPkgCategory" class="form-control-input" placeholder="Select category" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
               </div>
 
-              <div class="form-group full-width-field" style="grid-column: 1 / -1;">
-                <label for="addPkgDoctor" class="form-label">Assign Doctor <span class="required-star">*</span></label>
+              <div class="form-group">
+                <label for="addPkgDoctor1" class="form-label">Assign Doctor 1 <span class="required-star">*</span></label>
                 <div class="select-dropdown-container">
-                  <select id="addPkgDoctor" class="form-control-input form-select-input" required>
+                  <select id="addPkgDoctor1" class="form-control-input form-select-input" required>
                     <option value="" disabled selected>Select Doctor</option>
                   </select>
                   <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -344,13 +344,34 @@
               </div>
 
               <div class="form-group">
+                <label for="addPkgDoctor2" class="form-label">Assign Doctor 2</label>
+                <div class="select-dropdown-container">
+                  <select id="addPkgDoctor2" class="form-control-input form-select-input">
+                    <option value="" selected>Select Doctor</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="form-group">
                 <label for="addPkgPrice" class="form-label">Price <span class="required-star">*</span></label>
-                <input type="text" id="addPkgPrice" class="form-control-input" placeholder="Eg. Rs500" required>
+                <input type="text" id="addPkgPrice" class="form-control-input" placeholder="Eg. 500" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
               </div>
 
               <div class="form-group">
                 <label for="addPkgDuration" class="form-label">Duration <span class="required-star">*</span></label>
-                <input type="text" id="addPkgDuration" class="form-control-input" placeholder="Enter duration" required>
+                <div class="select-dropdown-container">
+                  <select id="addPkgDuration" class="form-control-input form-select-input" required>
+                    <option value="" disabled selected>Select duration</option>
+                    <option value="1 Month">1 Month</option>
+                    <option value="3 Months">3 Months</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -486,18 +507,18 @@
             <div class="form-grid-2col">
               <div class="form-group">
                 <label for="editPkgName" class="form-label">Package Name <span class="required-star">*</span></label>
-                <input type="text" id="editPkgName" class="form-control-input" placeholder="Enter package name" required>
+                <input type="text" id="editPkgName" class="form-control-input" placeholder="Enter package name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
               </div>
 
               <div class="form-group">
                 <label for="editPkgCategory" class="form-label">Package Category <span class="required-star">*</span></label>
-                <input type="text" id="editPkgCategory" class="form-control-input" placeholder="Enter package category" required>
+                <input type="text" id="editPkgCategory" class="form-control-input" placeholder="Enter package category" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
               </div>
 
-              <div class="form-group full-width-field" style="grid-column: 1 / -1;">
-                <label for="editPkgDoctor" class="form-label">Assign Doctor <span class="required-star">*</span></label>
+              <div class="form-group">
+                <label for="editPkgDoctor1" class="form-label">Assign Doctor 1 <span class="required-star">*</span></label>
                 <div class="select-dropdown-container">
-                  <select id="editPkgDoctor" class="form-control-input form-select-input" required>
+                  <select id="editPkgDoctor1" class="form-control-input form-select-input" required>
                     <option value="" disabled selected>Select Doctor</option>
                   </select>
                   <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -507,13 +528,34 @@
               </div>
 
               <div class="form-group">
+                <label for="editPkgDoctor2" class="form-label">Assign Doctor 2</label>
+                <div class="select-dropdown-container">
+                  <select id="editPkgDoctor2" class="form-control-input form-select-input">
+                    <option value="" selected>Select Doctor</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="form-group">
                 <label for="editPkgPrice" class="form-label">Price <span class="required-star">*</span></label>
-                <input type="text" id="editPkgPrice" class="form-control-input" placeholder="₹0" required>
+                <input type="text" id="editPkgPrice" class="form-control-input" placeholder="Eg. 500" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
               </div>
 
               <div class="form-group">
                 <label for="editPkgDuration" class="form-label">Duration <span class="required-star">*</span></label>
-                <input type="text" id="editPkgDuration" class="form-control-input" placeholder="e.g. 4 Weeks" required>
+                <div class="select-dropdown-container">
+                  <select id="editPkgDuration" class="form-control-input form-select-input" required>
+                    <option value="" disabled selected>Select duration</option>
+                    <option value="1 Month">1 Month</option>
+                    <option value="3 Months">3 Months</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
               </div>
             </div>
 

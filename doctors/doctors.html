@@ -273,7 +273,7 @@
             <!-- Row 1: Full Name & Date of Birth -->
             <div class="form-field-group">
               <label for="addFullName" class="form-label">Full Name <span class="required-star">*</span></label>
-              <input type="text" id="addFullName" name="fullName" class="form-text-input" placeholder="Enter full name" required>
+              <input type="text" id="addFullName" name="fullName" class="form-text-input" placeholder="Enter full name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
             <div class="form-field-group">
@@ -284,7 +284,7 @@
             <!-- Row 2: Phone Number & Gender -->
             <div class="form-field-group">
               <label for="addPhone" class="form-label">Phone Number <span class="required-star">*</span></label>
-              <input type="tel" id="addPhone" name="phone" class="form-text-input" placeholder="XXXXXXXXXX" maxlength="10" required>
+              <input type="tel" id="addPhone" name="phone" class="form-text-input" placeholder="XXXXXXXXXX" maxlength="10" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
             </div>
 
             <div class="form-field-group">
@@ -302,26 +302,37 @@
               </div>
             </div>
 
-            <!-- Row 3: Email & YOE -->
+            <!-- Row 3: Start Time & End Time -->
+            <div class="form-field-group">
+              <label for="addStartTime" class="form-label">Start Time <span class="required-star">*</span></label>
+              <input type="time" id="addStartTime" name="startTime" class="form-text-input time-input-field" required>
+            </div>
+
+            <div class="form-field-group">
+              <label for="addEndTime" class="form-label">End Time <span class="required-star">*</span></label>
+              <input type="time" id="addEndTime" name="endTime" class="form-text-input time-input-field" required>
+            </div>
+
+            <!-- Row 4: Email & Year of Experience -->
             <div class="form-field-group">
               <label for="addEmail" class="form-label">Email <span class="required-star">*</span></label>
               <input type="email" id="addEmail" name="email" class="form-text-input" placeholder="Enter email" required>
             </div>
 
             <div class="form-field-group">
-              <label for="addYoe" class="form-label">YOE <span class="required-star">*</span></label>
-              <input type="text" id="addYoe" name="yoe" class="form-text-input" placeholder="XX" required>
+              <label for="addYoe" class="form-label">Year of Experience <span class="required-star">*</span></label>
+              <input type="text" id="addYoe" name="yoe" class="form-text-input" placeholder="XX" maxlength="2" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
             </div>
 
             <!-- Row 4: Expertise & Area -->
             <div class="form-field-group">
               <label for="addExpertise" class="form-label">Expertise <span class="required-star">*</span></label>
-              <input type="text" id="addExpertise" name="expertise" class="form-text-input" placeholder="Enter expertise" required>
+              <input type="text" id="addExpertise" name="expertise" class="form-text-input" placeholder="Enter expertise" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
             <div class="form-field-group">
               <label for="addArea" class="form-label">Area <span class="required-star">*</span></label>
-              <input type="text" id="addArea" name="area" class="form-text-input" placeholder="Enter area of specialization" required>
+              <input type="text" id="addArea" name="area" class="form-text-input" placeholder="Enter area of specialization" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
             <!-- Row 5: Registration Number & HPR Registration Number -->
@@ -390,7 +401,7 @@
             <!-- Row 1: Full Name & Date of Birth -->
             <div class="form-field-group">
               <label for="editFullName" class="form-label">Full Name <span class="required-star">*</span></label>
-              <input type="text" id="editFullName" name="fullName" class="form-text-input" placeholder="Enter doctor name" required>
+              <input type="text" id="editFullName" name="fullName" class="form-text-input" placeholder="Enter doctor name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
             <div class="form-field-group">
@@ -401,7 +412,7 @@
             <!-- Row 2: Phone Number & Gender -->
             <div class="form-field-group">
               <label for="editPhone" class="form-label">Phone Number <span class="required-star">*</span></label>
-              <input type="tel" id="editPhone" name="phone" class="form-text-input" placeholder="Enter phone number" maxlength="10" required>
+              <input type="tel" id="editPhone" name="phone" class="form-text-input" placeholder="Enter phone number" maxlength="10" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
             </div>
 
             <div class="form-field-group">
@@ -419,29 +430,40 @@
               </div>
             </div>
 
-            <!-- Row 3: Email & YOE -->
+            <!-- Row 3: Start Time & End Time -->
+            <div class="form-field-group">
+              <label for="editStartTime" class="form-label">Start Time <span class="required-star">*</span></label>
+              <input type="time" id="editStartTime" name="startTime" class="form-text-input time-input-field" required>
+            </div>
+
+            <div class="form-field-group">
+              <label for="editEndTime" class="form-label">End Time <span class="required-star">*</span></label>
+              <input type="time" id="editEndTime" name="endTime" class="form-text-input time-input-field" required>
+            </div>
+
+            <!-- Row 4: Email & Year of Experience -->
             <div class="form-field-group">
               <label for="editEmail" class="form-label">Email <span class="required-star">*</span></label>
               <input type="email" id="editEmail" name="email" class="form-text-input" placeholder="Enter email" required>
             </div>
 
             <div class="form-field-group">
-              <label for="editYoe" class="form-label">YOE <span class="required-star">*</span></label>
-              <input type="text" id="editYoe" name="yoe" class="form-text-input" placeholder="XX" required>
+              <label for="editYoe" class="form-label">Year of Experience <span class="required-star">*</span></label>
+              <input type="text" id="editYoe" name="yoe" class="form-text-input" placeholder="XX" maxlength="2" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
             </div>
 
-            <!-- Row 4: Expertise & Area -->
+            <!-- Row 5: Expertise & Area -->
             <div class="form-field-group">
               <label for="editExpertise" class="form-label">Expertise <span class="required-star">*</span></label>
-              <input type="text" id="editExpertise" name="expertise" class="form-text-input" placeholder="Enter expertise" required>
+              <input type="text" id="editExpertise" name="expertise" class="form-text-input" placeholder="Enter expertise" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
             <div class="form-field-group">
               <label for="editArea" class="form-label">Area <span class="required-star">*</span></label>
-              <input type="text" id="editArea" name="area" class="form-text-input" placeholder="Enter area of specialization" required>
+              <input type="text" id="editArea" name="area" class="form-text-input" placeholder="Enter area of specialization" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
-            <!-- Row 5: Registration Number & HPR Registration Number -->
+            <!-- Row 6: Registration Number & HPR Registration Number -->
             <div class="form-field-group">
               <label for="editReg" class="form-label">Registration Number <span class="required-star">*</span></label>
               <input type="text" id="editReg" name="registrationNumber" class="form-text-input" placeholder="XXXX" required>
@@ -494,8 +516,10 @@
           <div class="detail-row"><span class="detail-key">Gender:</span><span class="detail-val" id="modalDocGender">-</span></div>
           <div class="detail-row"><span class="detail-key">Date of Birth:</span><span class="detail-val" id="modalDocDob">-</span></div>
           <div class="detail-row"><span class="detail-key">Phone Number:</span><span class="detail-val" id="modalDocPhone">-</span></div>
+          <div class="detail-row"><span class="detail-key">Start Time:</span><span class="detail-val" id="modalDocStartTime">-</span></div>
+          <div class="detail-row"><span class="detail-key">End Time:</span><span class="detail-val" id="modalDocEndTime">-</span></div>
           <div class="detail-row"><span class="detail-key">Email:</span><span class="detail-val" id="modalDocEmail">-</span></div>
-          <div class="detail-row"><span class="detail-key">YOE:</span><span class="detail-val" id="modalDocYoe">-</span></div>
+          <div class="detail-row"><span class="detail-key">Year of Experience:</span><span class="detail-val" id="modalDocYoe">-</span></div>
           <div class="detail-row"><span class="detail-key">Expertise:</span><span class="detail-val" id="modalDocExpertise">-</span></div>
           <div class="detail-row"><span class="detail-key">Area:</span><span class="detail-val" id="modalDocArea">-</span></div>
           <div class="detail-row"><span class="detail-key">Registration Number:</span><span class="detail-val" id="modalDocReg">-</span></div>

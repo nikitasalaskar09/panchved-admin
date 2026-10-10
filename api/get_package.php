@@ -58,12 +58,27 @@ if (!$package) {
     exit;
 }
 
-if (empty($package['assigned_doctor'])) {
-    $package['assigned_doctor'] = $package['assign_doctor'] ?? '-';
+$doc1 = trim((string)($package['assigned_doctor_one'] ?? $package['assigned_doctor_1'] ?? $package['assigned_doctor'] ?? $package['assign_doctor'] ?? ''));
+$doc2 = trim((string)($package['assign_doctor_two'] ?? $package['assigned_doctor_two'] ?? $package['assigned_doctor_2'] ?? $package['assign_doctor_2'] ?? ''));
+
+if ($doc2 === '' && strpos($doc1, ',') !== false) {
+    $parts = array_map('trim', explode(',', $doc1, 2));
+    $doc1 = $parts[0];
+    $doc2 = $parts[1] ?? '';
 }
-if (empty($package['assign_doctor'])) {
-    $package['assign_doctor'] = $package['assigned_doctor'];
+
+$package['assigned_doctor'] = $doc1;
+$package['assigned_doctor_1'] = $doc1;
+$package['assigned_doctor_2'] = $doc2;
+$package['assign_doctor'] = $doc1;
+$package['assign_doctor_1'] = $doc1;
+$package['assign_doctor_2'] = $doc2;
+
+$combined_doc = $doc1;
+if ($doc2 !== '') {
+    $combined_doc = $doc1 !== '' ? ($doc1 . ', ' . $doc2) : $doc2;
 }
+$package['combined_doctor'] = $combined_doc ?: '-';
 
 echo json_encode([
     'status' => '1',

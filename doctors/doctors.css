@@ -256,9 +256,11 @@
   box-shadow: 0 0 0 3px var(--primary-teal-focus-ring);
 }
 
-/* Date Input & Internal Calendar Icon */
+/* Date & Time Inputs & Picker Icons */
 .form-card input[type="date"].form-text-input,
-input[type="date"].form-text-input {
+.form-card input[type="time"].form-text-input,
+input[type="date"].form-text-input,
+input[type="time"].form-text-input {
   cursor: pointer;
   padding-right: 12px;
   font-family: inherit;
@@ -267,7 +269,9 @@ input[type="date"].form-text-input {
 }
 
 .form-card input[type="date"].form-text-input::-webkit-calendar-picker-indicator,
-input[type="date"].form-text-input::-webkit-calendar-picker-indicator {
+.form-card input[type="time"].form-text-input::-webkit-calendar-picker-indicator,
+input[type="date"].form-text-input::-webkit-calendar-picker-indicator,
+input[type="time"].form-text-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.65;
   padding: 6px;
@@ -276,7 +280,9 @@ input[type="date"].form-text-input::-webkit-calendar-picker-indicator {
 }
 
 .form-card input[type="date"].form-text-input::-webkit-calendar-picker-indicator:hover,
-input[type="date"].form-text-input::-webkit-calendar-picker-indicator:hover {
+.form-card input[type="time"].form-text-input::-webkit-calendar-picker-indicator:hover,
+input[type="date"].form-text-input::-webkit-calendar-picker-indicator:hover,
+input[type="time"].form-text-input::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
   background-color: #F1F5F9;
 }

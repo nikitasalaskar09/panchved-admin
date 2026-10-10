@@ -55,45 +55,77 @@ $doctor = null;
 
 if ($result && $row = mysqli_fetch_assoc($result)) {
     $doctor = $row;
+    if (empty($doctor['start_time'])) {
+        $doctor['start_time'] = '09:00:00';
+    }
+    if (empty($doctor['end_time'])) {
+        $doctor['end_time'] = '17:00:00';
+    }
 } else {
     mysqli_stmt_store_result($stmt);
     if (mysqli_stmt_num_rows($stmt) > 0) {
-        mysqli_stmt_bind_result(
-            $stmt,
-            $d_id,
-            $d_doctorid,
-            $d_full_name,
-            $d_date_of_birth,
-            $d_phone_number,
-            $d_gender,
-            $d_email,
-            $d_years_of_experience,
-            $d_expertise,
-            $d_area,
-            $d_registration_number,
-            $d_hpr_registration_number,
-            $d_status,
-            $d_created_at,
-            $d_updated_at
-        );
-        if (mysqli_stmt_fetch($stmt)) {
-            $doctor = [
-                'id' => (int) $d_id,
-                'doctorid' => $d_doctorid ?: ('DOC' . str_pad((string)$d_id, 6, '0', STR_PAD_LEFT)),
-                'full_name' => $d_full_name,
-                'date_of_birth' => $d_date_of_birth,
-                'phone_number' => $d_phone_number,
-                'gender' => $d_gender,
-                'email' => $d_email,
-                'years_of_experience' => (int) $d_years_of_experience,
-                'expertise' => $d_expertise,
-                'area' => $d_area,
-                'registration_number' => $d_registration_number,
-                'hpr_registration_number' => $d_hpr_registration_number,
-                'status' => $d_status,
-                'created_at' => $d_created_at,
-                'updated_at' => $d_updated_at
-            ];
+        $meta = mysqli_stmt_result_metadata($stmt);
+        $fields = [];
+        $row_data = [];
+        if ($meta) {
+            while ($field = mysqli_fetch_field($meta)) {
+                $fields[] = $field->name;
+                $row_data[$field->name] = null;
+            }
+            $params = [];
+            foreach ($fields as $fieldName) {
+                $params[] = &$row_data[$fieldName];
+            }
+            call_user_func_array('mysqli_stmt_bind_result', array_merge([$stmt], $params));
+            if (mysqli_stmt_fetch($stmt)) {
+                $doctor = [];
+                foreach ($row_data as $k => $v) {
+                    $doctor[$k] = $v;
+                }
+            }
+        }
+        if (!$doctor) {
+            mysqli_stmt_bind_result(
+                $stmt,
+                $d_id,
+                $d_doctorid,
+                $d_full_name,
+                $d_date_of_birth,
+                $d_phone_number,
+                $d_gender,
+                $d_email,
+                $d_years_of_experience,
+                $d_expertise,
+                $d_area,
+                $d_registration_number,
+                $d_hpr_registration_number,
+                $d_start_time,
+                $d_end_time,
+                $d_status,
+                $d_created_at,
+                $d_updated_at
+            );
+            if (mysqli_stmt_fetch($stmt)) {
+                $doctor = [
+                    'id' => (int) $d_id,
+                    'doctorid' => $d_doctorid ?: ('DOC' . str_pad((string)$d_id, 6, '0', STR_PAD_LEFT)),
+                    'full_name' => $d_full_name,
+                    'date_of_birth' => $d_date_of_birth,
+                    'phone_number' => $d_phone_number,
+                    'gender' => $d_gender,
+                    'email' => $d_email,
+                    'years_of_experience' => (int) $d_years_of_experience,
+                    'expertise' => $d_expertise,
+                    'area' => $d_area,
+                    'registration_number' => $d_registration_number,
+                    'hpr_registration_number' => $d_hpr_registration_number,
+                    'start_time' => $d_start_time ?: '09:00:00',
+                    'end_time' => $d_end_time ?: '17:00:00',
+                    'status' => $d_status,
+                    'created_at' => $d_created_at,
+                    'updated_at' => $d_updated_at
+                ];
+            }
         }
     }
 }

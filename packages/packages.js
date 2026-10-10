@@ -125,9 +125,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Helper: Fetch Doctors list strictly from database doctor records (dynamic only)
   let cachedDoctors = [];
+
+  function populateDoctorSelect(selectEl, selectedVal, excludedVal, isOptional = false) {
+    if (!selectEl) return;
+    const prevVal = selectedVal !== undefined ? selectedVal : selectEl.value;
+    selectEl.innerHTML = isOptional
+      ? '<option value="">Select Doctor</option>'
+      : (cachedDoctors.length > 0
+          ? '<option value="" disabled selected>Select Doctor</option>'
+          : '<option value="" disabled selected>No doctors available</option>');
+
+    cachedDoctors.forEach(doc => {
+      if (excludedVal && doc.full_name === excludedVal) {
+        return; // Exclude doctor selected in Doctor 1 from Doctor 2 options
+      }
+      const opt = document.createElement('option');
+      opt.value = doc.full_name;
+      opt.textContent = doc.expertise ? `${doc.full_name} (${doc.expertise})` : doc.full_name;
+      selectEl.appendChild(opt);
+    });
+
+    if (prevVal) {
+      if (!Array.from(selectEl.options).some(o => o.value === prevVal)) {
+        if (prevVal !== excludedVal) {
+          const opt = document.createElement('option');
+          opt.value = prevVal;
+          opt.textContent = prevVal;
+          selectEl.appendChild(opt);
+          selectEl.value = prevVal;
+        } else {
+          selectEl.value = '';
+        }
+      } else {
+        selectEl.value = prevVal;
+      }
+    } else if (isOptional) {
+      selectEl.value = '';
+    }
+  }
+
+  function setupDoctorDropdownPair(doc1El, doc2El) {
+    if (!doc1El || !doc2El) return;
+    doc1El.addEventListener('change', () => {
+      const selectedDoc1 = doc1El.value;
+      const currentDoc2 = doc2El.value;
+      populateDoctorSelect(doc2El, currentDoc2 === selectedDoc1 ? '' : currentDoc2, selectedDoc1, true);
+    });
+  }
+
   async function loadDoctorsList() {
-    const addDoctorSelect = document.getElementById('addPkgDoctor');
-    const editDoctorSelect = document.getElementById('editPkgDoctor');
+    const addDoctor1 = document.getElementById('addPkgDoctor1');
+    const addDoctor2 = document.getElementById('addPkgDoctor2');
+    const editDoctor1 = document.getElementById('editPkgDoctor1');
+    const editDoctor2 = document.getElementById('editPkgDoctor2');
 
     try {
       // Query doctors directly from the database API without any static fallbacks
@@ -154,50 +204,26 @@ document.addEventListener('DOMContentLoaded', () => {
       cachedDoctors = [];
     }
 
-    // Populate Add Select
-    if (addDoctorSelect) {
-      const currentVal = addDoctorSelect.value;
-      addDoctorSelect.innerHTML = cachedDoctors.length > 0
-        ? '<option value="" disabled selected>Select Doctor</option>'
-        : '<option value="" disabled selected>No doctors available</option>';
-
-      cachedDoctors.forEach(doc => {
-        const opt = document.createElement('option');
-        opt.value = doc.full_name;
-        opt.textContent = doc.expertise ? `${doc.full_name} (${doc.expertise})` : doc.full_name;
-        addDoctorSelect.appendChild(opt);
-      });
-
-      if (currentVal && Array.from(addDoctorSelect.options).some(o => o.value === currentVal)) {
-        addDoctorSelect.value = currentVal;
-      }
+    // Populate Add Selects
+    if (addDoctor1) {
+      populateDoctorSelect(addDoctor1, addDoctor1.value, '', false);
+    }
+    if (addDoctor2) {
+      populateDoctorSelect(addDoctor2, addDoctor2.value, addDoctor1 ? addDoctor1.value : '', true);
     }
 
-    // Populate Edit Select
-    if (editDoctorSelect) {
-      const currentVal = editDoctorSelect.value;
-      editDoctorSelect.innerHTML = cachedDoctors.length > 0
-        ? '<option value="" disabled selected>Select Doctor</option>'
-        : '<option value="" disabled selected>No doctors available</option>';
-
-      cachedDoctors.forEach(doc => {
-        const opt = document.createElement('option');
-        opt.value = doc.full_name;
-        opt.textContent = doc.expertise ? `${doc.full_name} (${doc.expertise})` : doc.full_name;
-        editDoctorSelect.appendChild(opt);
-      });
-
-      if (currentVal) {
-        if (!Array.from(editDoctorSelect.options).some(o => o.value === currentVal)) {
-          const opt = document.createElement('option');
-          opt.value = currentVal;
-          opt.textContent = currentVal;
-          editDoctorSelect.appendChild(opt);
-        }
-        editDoctorSelect.value = currentVal;
-      }
+    // Populate Edit Selects
+    if (editDoctor1) {
+      populateDoctorSelect(editDoctor1, editDoctor1.value, '', false);
+    }
+    if (editDoctor2) {
+      populateDoctorSelect(editDoctor2, editDoctor2.value, editDoctor1 ? editDoctor1.value : '', true);
     }
   }
+
+  // Set up dynamic exclusion listeners for Doctor 1 -> Doctor 2
+  setupDoctorDropdownPair(document.getElementById('addPkgDoctor1'), document.getElementById('addPkgDoctor2'));
+  setupDoctorDropdownPair(document.getElementById('editPkgDoctor1'), document.getElementById('editPkgDoctor2'));
 
   if (openAddPackageBtn) {
     openAddPackageBtn.addEventListener('click', async () => {
@@ -205,6 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const fn = document.getElementById('addSelectedFileName');
       if (fn) fn.textContent = '';
       await loadDoctorsList();
+      const addDoc1 = document.getElementById('addPkgDoctor1');
+      const addDoc2 = document.getElementById('addPkgDoctor2');
+      if (addDoc1) populateDoctorSelect(addDoc1, '', '', false);
+      if (addDoc2) populateDoctorSelect(addDoc2, '', '', true);
       switchView(addPackageView);
     });
   }
@@ -216,6 +246,72 @@ document.addEventListener('DOMContentLoaded', () => {
   if (backFromEditBtn) {
     backFromEditBtn.addEventListener('click', () => switchView(packagesListView));
   }
+
+  // Restrict number input on Package Name and Package Category fields in Add & Edit Package forms
+  ['addPkgName', 'addPkgCategory', 'editPkgName', 'editPkgCategory'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key >= '0' && e.key <= '9' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+        }
+      });
+      el.addEventListener('input', () => {
+        const cleanVal = el.value.replace(/[0-9]/g, '');
+        if (el.value !== cleanVal) {
+          el.value = cleanVal;
+        }
+      });
+      el.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData)?.getData('text');
+        if (pastedText && /[0-9]/.test(pastedText)) {
+          e.preventDefault();
+          const cleanText = pastedText.replace(/[0-9]/g, '');
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          const currentVal = el.value;
+          el.value = currentVal.slice(0, start) + cleanText + currentVal.slice(end);
+          el.setSelectionRange(start + cleanText.length, start + cleanText.length);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    }
+  });
+
+  // Restrict text input on Price field in Add & Edit Package forms (digits only)
+  ['addPkgPrice', 'editPkgPrice'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (e) => {
+        const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+        if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) {
+          return;
+        }
+        if (e.key < '0' || e.key > '9') {
+          e.preventDefault();
+        }
+      });
+      el.addEventListener('input', () => {
+        const cleanVal = el.value.replace(/[^0-9]/g, '');
+        if (el.value !== cleanVal) {
+          el.value = cleanVal;
+        }
+      });
+      el.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData)?.getData('text');
+        if (pastedText && /[^0-9]/.test(pastedText)) {
+          e.preventDefault();
+          const cleanText = pastedText.replace(/[^0-9]/g, '');
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          const currentVal = el.value;
+          el.value = currentVal.slice(0, start) + cleanText + currentVal.slice(end);
+          el.setSelectionRange(start + cleanText.length, start + cleanText.length);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    }
+  });
 
   // 2. Fetch Packages from API
   async function fetchPackages(page = 1) {
@@ -324,7 +420,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const isStatusActive = status.toLowerCase() === 'active';
       const statusClass = isStatusActive ? 'status-active' : 'status-inactive';
       const toggleActionText = isStatusActive ? 'Deactivate' : 'Activate';
-      const docName = pkg.assigned_doctor || pkg.assign_doctor || '-';
+      const doc1Name = pkg.assigned_doctor_1 || pkg.assign_doctor_1 || pkg.assigned_doctor || '';
+      const doc2Name = pkg.assigned_doctor_2 || pkg.assign_doctor_2 || '';
+      let docName = '';
+      if (doc1Name && doc2Name && doc1Name !== '-' && doc2Name !== '-') {
+        docName = `${doc1Name}, ${doc2Name}`;
+      } else if (doc1Name && doc1Name !== '-') {
+        docName = doc1Name;
+      } else if (doc2Name && doc2Name !== '-') {
+        docName = doc2Name;
+      } else if (pkg.combined_doctor && pkg.combined_doctor !== '-') {
+        docName = pkg.combined_doctor;
+      } else {
+        docName = '-';
+      }
 
       const row = document.createElement('tr');
       row.className = 'package-row';
@@ -333,6 +442,8 @@ document.addEventListener('DOMContentLoaded', () => {
       row.setAttribute('data-name', name);
       row.setAttribute('data-category', category);
       row.setAttribute('data-doctor', docName);
+      row.setAttribute('data-doctor1', doc1Name !== '-' ? doc1Name : '');
+      row.setAttribute('data-doctor2', doc2Name !== '-' ? doc2Name : '');
       row.setAttribute('data-duration', duration);
       row.setAttribute('data-price', String(priceNum));
       row.setAttribute('data-enrollments', String(enrollments));
@@ -614,7 +725,21 @@ document.addEventListener('DOMContentLoaded', () => {
           // Tab 1: Package Information
           setT('viewModalPkgName', pkg.package_name || '-');
           setT('viewModalPkgCategory', pkg.category || '-');
-          setT('viewModalPkgDoctor', pkg.assigned_doctor || pkg.assign_doctor || row.getAttribute('data-doctor') || '-');
+          const d1 = pkg.assigned_doctor_1 || pkg.assign_doctor_1 || pkg.assigned_doctor || '';
+          const d2 = pkg.assigned_doctor_2 || pkg.assign_doctor_2 || '';
+          let combinedDoc = '';
+          if (d1 && d2 && d1 !== '-' && d2 !== '-') {
+            combinedDoc = `${d1}, ${d2}`;
+          } else if (d1 && d1 !== '-') {
+            combinedDoc = d1;
+          } else if (d2 && d2 !== '-') {
+            combinedDoc = d2;
+          } else if (pkg.combined_doctor && pkg.combined_doctor !== '-') {
+            combinedDoc = pkg.combined_doctor;
+          } else {
+            combinedDoc = row.getAttribute('data-doctor') || '-';
+          }
+          setT('viewModalPkgDoctor', combinedDoc || '-');
           
           let formattedPrice = '-';
           if (pkg.price !== null && pkg.price !== undefined && pkg.price !== '') {
@@ -695,7 +820,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const pkgName = document.getElementById('addPkgName')?.value.trim() || '';
       const category = document.getElementById('addPkgCategory')?.value.trim() || '';
-      const assignDoctor = document.getElementById('addPkgDoctor')?.value.trim() || '';
+      const assignDoctor1 = document.getElementById('addPkgDoctor1')?.value.trim() || '';
+      const assignDoctor2 = document.getElementById('addPkgDoctor2')?.value.trim() || '';
       const price = document.getElementById('addPkgPrice')?.value.trim() || '';
       const duration = document.getElementById('addPkgDuration')?.value.trim() || '';
       const shortDesc = document.getElementById('addPkgShortDesc')?.value.trim() || '';
@@ -715,14 +841,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('addPkgName')?.focus();
         return;
       }
+      if (/[0-9]/.test(pkgName)) {
+        showToast('Package name should not contain numbers.', 'error');
+        document.getElementById('addPkgName')?.focus();
+        return;
+      }
       if (!category) {
         showToast('Please enter package category.', 'error');
         document.getElementById('addPkgCategory')?.focus();
         return;
       }
-      if (!assignDoctor) {
-        showToast('Please select an assigned doctor.', 'error');
-        document.getElementById('addPkgDoctor')?.focus();
+      if (/[0-9]/.test(category)) {
+        showToast('Package category should not contain numbers.', 'error');
+        document.getElementById('addPkgCategory')?.focus();
+        return;
+      }
+      if (!assignDoctor1) {
+        showToast('Please select assigned doctor 1.', 'error');
+        document.getElementById('addPkgDoctor1')?.focus();
         return;
       }
       if (!price) {
@@ -730,8 +866,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('addPkgPrice')?.focus();
         return;
       }
+      if (/[^0-9]/.test(price)) {
+        showToast('Package price must contain only numbers.', 'error');
+        document.getElementById('addPkgPrice')?.focus();
+        return;
+      }
       if (!duration) {
-        showToast('Please enter package duration.', 'error');
+        showToast('Please select package duration.', 'error');
         document.getElementById('addPkgDuration')?.focus();
         return;
       }
@@ -792,11 +933,18 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.innerHTML = '<span>Saving...</span>';
       }
 
+      const combinedDoctor = assignDoctor2 ? `${assignDoctor1}, ${assignDoctor2}` : assignDoctor1;
+
       const payload = {
         package_name: pkgName,
         category: category,
-        assigned_doctor: assignDoctor,
-        assign_doctor: assignDoctor,
+        assigned_doctor: assignDoctor1,
+        assign_doctor: assignDoctor1,
+        assigned_doctor_1: assignDoctor1,
+        assigned_doctor_2: assignDoctor2,
+        assign_doctor_1: assignDoctor1,
+        assign_doctor_2: assignDoctor2,
+        combined_doctor: combinedDoctor,
         price: price,
         duration: duration,
         short_description: shortDesc,
@@ -850,29 +998,68 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentTargetRow) {
         await loadDoctorsList();
 
+        const formatPriceValue = (val) => {
+          if (val === null || val === undefined || val === '') return '';
+          const num = Number(val);
+          if (!isNaN(num) && isFinite(num)) {
+            return String(num);
+          }
+          const clean = String(val).replace(/[^0-9.]/g, '');
+          const parsed = parseFloat(clean);
+          return isNaN(parsed) ? '' : String(parsed);
+        };
+
         const setVal = (id, val) => {
           const el = document.getElementById(id);
           if (el) {
-            if (id === 'editPkgDoctor' && val) {
-              if (!Array.from(el.options).some(o => o.value === val)) {
-                const opt = document.createElement('option');
-                opt.value = val;
-                opt.textContent = val;
-                el.appendChild(opt);
+            const stringVal = (val !== null && val !== undefined) ? String(val).trim() : '';
+            if (el.tagName === 'SELECT' && stringVal !== '') {
+              el.value = stringVal;
+              if (!el.value) {
+                const match = Array.from(el.options).find(o => o.value.toLowerCase() === stringVal.toLowerCase());
+                if (match) {
+                  el.value = match.value;
+                } else {
+                  const newOpt = document.createElement('option');
+                  newOpt.value = stringVal;
+                  newOpt.textContent = stringVal;
+                  el.appendChild(newOpt);
+                  el.value = stringVal;
+                }
               }
+            } else {
+              el.value = stringVal;
             }
-            el.value = (val !== null && val !== undefined) ? val : '';
           }
         };
 
         const id = currentTargetRow.getAttribute('data-id');
         const packageId = currentTargetRow.getAttribute('data-package-id');
 
+        let initDoc1 = currentTargetRow.getAttribute('data-doctor1') || '';
+        let initDoc2 = currentTargetRow.getAttribute('data-doctor2') || '';
+        const rawDoctor = currentTargetRow.getAttribute('data-doctor') || '';
+        if ((!initDoc1 || initDoc1 === '-') && (!initDoc2 || initDoc2 === '-') && rawDoctor && rawDoctor !== '-') {
+          if (rawDoctor.includes(',')) {
+            const parts = rawDoctor.split(',').map(s => s.trim());
+            initDoc1 = parts[0] || '';
+            initDoc2 = parts[1] || '';
+          } else {
+            initDoc1 = rawDoctor;
+          }
+        }
+        if (initDoc1 === '-') initDoc1 = '';
+        if (initDoc2 === '-') initDoc2 = '';
+
+        const editDoc1El = document.getElementById('editPkgDoctor1');
+        const editDoc2El = document.getElementById('editPkgDoctor2');
+        if (editDoc1El) populateDoctorSelect(editDoc1El, initDoc1, '', false);
+        if (editDoc2El) populateDoctorSelect(editDoc2El, initDoc2, initDoc1, true);
+
         // Populate initially from row attributes
         setVal('editPkgName', currentTargetRow.getAttribute('data-name') || '');
         setVal('editPkgCategory', currentTargetRow.getAttribute('data-category') || '');
-        setVal('editPkgDoctor', currentTargetRow.getAttribute('data-doctor') || '');
-        setVal('editPkgPrice', currentTargetRow.getAttribute('data-price') || '');
+        setVal('editPkgPrice', formatPriceValue(currentTargetRow.getAttribute('data-price')));
         setVal('editPkgDuration', currentTargetRow.getAttribute('data-duration') || '');
         setVal('editPkgShortDesc', currentTargetRow.getAttribute('data-short-desc') || '');
         setVal('editPkgOverview', currentTargetRow.getAttribute('data-overview') || '');
@@ -897,10 +1084,27 @@ document.addEventListener('DOMContentLoaded', () => {
           const result = await response.json();
           if (result.status === '1' && result.data) {
             const pkg = result.data;
+            let dbDoc1 = pkg.assigned_doctor_1 || pkg.assign_doctor_1 || pkg.assigned_doctor || '';
+            let dbDoc2 = pkg.assigned_doctor_2 || pkg.assign_doctor_2 || '';
+            const dbFullDoc = pkg.combined_doctor || pkg.assigned_doctor || pkg.assign_doctor || '';
+            if ((!dbDoc1 || dbDoc1 === '-') && (!dbDoc2 || dbDoc2 === '-') && dbFullDoc && dbFullDoc !== '-') {
+              if (dbFullDoc.includes(',')) {
+                const parts = dbFullDoc.split(',').map(s => s.trim());
+                dbDoc1 = parts[0] || '';
+                dbDoc2 = parts[1] || '';
+              } else {
+                dbDoc1 = dbFullDoc;
+              }
+            }
+            if (dbDoc1 === '-') dbDoc1 = '';
+            if (dbDoc2 === '-') dbDoc2 = '';
+
+            if (editDoc1El) populateDoctorSelect(editDoc1El, dbDoc1, '', false);
+            if (editDoc2El) populateDoctorSelect(editDoc2El, dbDoc2, dbDoc1, true);
+
             setVal('editPkgName', pkg.package_name);
             setVal('editPkgCategory', pkg.category);
-            setVal('editPkgDoctor', pkg.assigned_doctor || pkg.assign_doctor || '');
-            setVal('editPkgPrice', pkg.price);
+            setVal('editPkgPrice', formatPriceValue(pkg.price));
             setVal('editPkgDuration', pkg.duration);
             setVal('editPkgShortDesc', pkg.short_description);
             setVal('editPkgOverview', pkg.overview);
@@ -927,7 +1131,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const pkgName = document.getElementById('editPkgName')?.value.trim() || '';
       const category = document.getElementById('editPkgCategory')?.value.trim() || '';
-      const assignDoctor = document.getElementById('editPkgDoctor')?.value.trim() || '';
+      const assignDoctor1 = document.getElementById('editPkgDoctor1')?.value.trim() || '';
+      const assignDoctor2 = document.getElementById('editPkgDoctor2')?.value.trim() || '';
       const price = document.getElementById('editPkgPrice')?.value.trim() || '';
       const duration = document.getElementById('editPkgDuration')?.value.trim() || '';
       const shortDesc = document.getElementById('editPkgShortDesc')?.value.trim() || '';
@@ -947,14 +1152,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editPkgName')?.focus();
         return;
       }
+      if (/[0-9]/.test(pkgName)) {
+        showToast('Package name should not contain numbers.', 'error');
+        document.getElementById('editPkgName')?.focus();
+        return;
+      }
       if (!category) {
         showToast('Please enter package category.', 'error');
         document.getElementById('editPkgCategory')?.focus();
         return;
       }
-      if (!assignDoctor) {
-        showToast('Please select an assigned doctor.', 'error');
-        document.getElementById('editPkgDoctor')?.focus();
+      if (/[0-9]/.test(category)) {
+        showToast('Package category should not contain numbers.', 'error');
+        document.getElementById('editPkgCategory')?.focus();
+        return;
+      }
+      if (!assignDoctor1) {
+        showToast('Please select assigned doctor 1.', 'error');
+        document.getElementById('editPkgDoctor1')?.focus();
         return;
       }
       if (!price) {
@@ -962,8 +1177,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editPkgPrice')?.focus();
         return;
       }
+      if (/[^0-9]/.test(price)) {
+        showToast('Package price must contain only numbers.', 'error');
+        document.getElementById('editPkgPrice')?.focus();
+        return;
+      }
       if (!duration) {
-        showToast('Please enter package duration.', 'error');
+        showToast('Please select package duration.', 'error');
         document.getElementById('editPkgDuration')?.focus();
         return;
       }
@@ -1027,13 +1247,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const id = currentTargetRow.getAttribute('data-id');
       const packageId = currentTargetRow.getAttribute('data-package-id');
 
+      const combinedDoctor = assignDoctor2 ? `${assignDoctor1}, ${assignDoctor2}` : assignDoctor1;
+
       const payload = {
         id: Number(id),
         package_id: packageId,
         package_name: pkgName,
         category: category,
-        assigned_doctor: assignDoctor,
-        assign_doctor: assignDoctor,
+        assigned_doctor: assignDoctor1,
+        assign_doctor: assignDoctor1,
+        assigned_doctor_1: assignDoctor1,
+        assigned_doctor_2: assignDoctor2,
+        assign_doctor_1: assignDoctor1,
+        assign_doctor_2: assignDoctor2,
+        combined_doctor: combinedDoctor,
         price: price,
         duration: duration,
         short_description: shortDesc,

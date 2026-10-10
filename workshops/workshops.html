@@ -354,13 +354,13 @@
           <div class="form-grid-2col">
             <div class="form-group">
               <label for="addWsName" class="form-label">Workshop Name <span class="required-star">*</span></label>
-              <input type="text" id="addWsName" class="form-control-input" placeholder="Enter workshop name" required>
+              <input type="text" id="addWsName" class="form-control-input" placeholder="Enter workshop name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
             <div class="form-group">
               <label for="addWsSubtitle" class="form-label">Workshop Subtitle <span
                   class="required-star">*</span></label>
-              <input type="text" id="addWsSubtitle" class="form-control-input" placeholder="Enter workshop subtitle"
+              <input type="text" id="addWsSubtitle" class="form-control-input" placeholder="Enter workshop subtitle" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')"
                 required>
             </div>
 
@@ -371,7 +371,7 @@
 
             <div class="form-group">
               <label for="addWsTime" class="form-label">Time <span class="required-star">*</span></label>
-              <input type="text" id="addWsTime" class="form-control-input" placeholder="Enter time" required>
+              <input type="time" id="addWsTime" class="form-control-input time-input-field" required>
             </div>
 
             <div class="form-group">
@@ -381,6 +381,7 @@
                   <option value="" disabled selected>Select attendee</option>
                   <option value="Doctor">Doctor</option>
                   <option value="Patient">Patient</option>
+                  <option value="Both">Both</option>
                 </select>
                 <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                   <polyline points="6 9 12 15 18 9"></polyline>
@@ -391,7 +392,7 @@
 
           <div class="form-group full-width-field">
             <label for="addWsFee" class="form-label">Registration fee <span class="required-star">*</span></label>
-            <input type="text" id="addWsFee" class="form-control-input" placeholder="Eg. ₹XX" required>
+            <input type="text" id="addWsFee" class="form-control-input" placeholder="Eg. 500" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
           </div>
 
           <div class="form-group full-width-field">
@@ -404,7 +405,7 @@
             <label for="addWsAssignSpeaker" class="form-label">Assign Speaker <span
                 class="required-star">*</span></label>
             <input type="text" id="addWsAssignSpeaker" class="form-control-input"
-              placeholder="Enter or assign speaker name" required>
+              placeholder="Enter or assign speaker name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
           </div>
 
           <div class="form-group full-width-field">
@@ -492,13 +493,13 @@
           <div class="form-grid-2col">
             <div class="form-group">
               <label for="editWsName" class="form-label">Workshop Name <span class="required-star">*</span></label>
-              <input type="text" id="editWsName" class="form-control-input" placeholder="Enter workshop name" required>
+              <input type="text" id="editWsName" class="form-control-input" placeholder="Enter workshop name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
             </div>
 
             <div class="form-group">
               <label for="editWsSubtitle" class="form-label">Workshop Subtitle <span
                   class="required-star">*</span></label>
-              <input type="text" id="editWsSubtitle" class="form-control-input" placeholder="Enter workshop subtitle"
+              <input type="text" id="editWsSubtitle" class="form-control-input" placeholder="Enter workshop subtitle" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')"
                 required>
             </div>
 
@@ -509,7 +510,7 @@
 
             <div class="form-group">
               <label for="editWsTime" class="form-label">Time <span class="required-star">*</span></label>
-              <input type="text" id="editWsTime" class="form-control-input" placeholder="Enter time" required>
+              <input type="time" id="editWsTime" class="form-control-input time-input-field" required>
             </div>
 
             <div class="form-group">
@@ -519,6 +520,7 @@
                   <option value="" disabled selected>Select attendee</option>
                   <option value="Doctor">Doctor</option>
                   <option value="Patient">Patient</option>
+                  <option value="Both">Both</option>
                 </select>
                 <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                   <polyline points="6 9 12 15 18 9"></polyline>
@@ -529,7 +531,7 @@
 
           <div class="form-group full-width-field">
             <label for="editWsFee" class="form-label">Registration fee <span class="required-star">*</span></label>
-            <input type="text" id="editWsFee" class="form-control-input" placeholder="Eg. ₹XX" required>
+            <input type="text" id="editWsFee" class="form-control-input" placeholder="Eg. 500" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
           </div>
 
           <div class="form-group full-width-field">
@@ -553,7 +555,7 @@
             <label for="editWsAssignSpeaker" class="form-label">Assign Speaker <span
                 class="required-star">*</span></label>
             <input type="text" id="editWsAssignSpeaker" class="form-control-input"
-              placeholder="Enter or assign speaker name" required>
+              placeholder="Enter or assign speaker name" pattern="[^0-9]*" oninput="this.value = this.value.replace(/[0-9]/g, '')" required>
           </div>
 
           <div class="form-group full-width-field">

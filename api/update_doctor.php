@@ -91,7 +91,45 @@ $expertise = trim((string) ($data['expertise'] ?? $existing_doctor['expertise'])
 $area = trim((string) ($data['area'] ?? $existing_doctor['area']));
 $registration_number = trim((string) ($data['registration_number'] ?? $data['registrationNumber'] ?? $data['regNumber'] ?? $existing_doctor['registration_number']));
 $hpr_registration_number = trim((string) ($data['hpr_registration_number'] ?? $data['hprNumber'] ?? $data['hprRegNumber'] ?? $existing_doctor['hpr_registration_number']));
+$start_time_input = trim((string) ($data['start_time'] ?? $data['startTime'] ?? ($existing_doctor['start_time'] ?? '09:00:00')));
+$end_time_input = trim((string) ($data['end_time'] ?? $data['endTime'] ?? ($existing_doctor['end_time'] ?? '17:00:00')));
 $status = trim((string) ($data['status'] ?? $existing_doctor['status']));
+
+// Format Start Time and End Time
+$start_time = !empty($existing_doctor['start_time']) ? $existing_doctor['start_time'] : '09:00:00';
+if ($start_time_input !== '') {
+    $st_time = strtotime($start_time_input);
+    if ($st_time !== false) {
+        $start_time = date('H:i:s', $st_time);
+    }
+}
+
+$end_time = !empty($existing_doctor['end_time']) ? $existing_doctor['end_time'] : '17:00:00';
+if ($end_time_input !== '') {
+    $et_time = strtotime($end_time_input);
+    if ($et_time !== false) {
+        $end_time = date('H:i:s', $et_time);
+    }
+}
+
+// Auto-migration check: ensure start_time and end_time columns exist
+if ($connection1) {
+    $columns_res = @mysqli_query($connection1, "SHOW COLUMNS FROM doctors");
+    $existing_columns = [];
+    if ($columns_res) {
+        while ($col = mysqli_fetch_assoc($columns_res)) {
+            $existing_columns[] = strtolower($col['Field']);
+        }
+    }
+    if (!empty($existing_columns)) {
+        if (!in_array('start_time', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE doctors ADD COLUMN `start_time` TIME NULL DEFAULT '09:00:00' AFTER `hpr_registration_number`");
+        }
+        if (!in_array('end_time', $existing_columns)) {
+            @mysqli_query($connection1, "ALTER TABLE doctors ADD COLUMN `end_time` TIME NULL DEFAULT '17:00:00' AFTER `start_time`");
+        }
+    }
+}
 
 /* =========================================
    VALIDATIONS
@@ -235,6 +273,8 @@ $update_sql = "
         area = ?,
         registration_number = ?,
         hpr_registration_number = ?,
+        start_time = ?,
+        end_time = ?,
         status = ?
     WHERE id = ?
 ";
@@ -252,7 +292,7 @@ if (!$up_stmt) {
 
 mysqli_stmt_bind_param(
     $up_stmt,
-    "sssssisssssi",
+    "sssssisssssssi",
     $full_name,
     $formatted_dob,
     $phone_number,
@@ -263,6 +303,8 @@ mysqli_stmt_bind_param(
     $area,
     $registration_number,
     $hpr_registration_number,
+    $start_time,
+    $end_time,
     $status,
     $id
 );
@@ -287,6 +329,8 @@ if (mysqli_stmt_execute($up_stmt)) {
             'area' => $area,
             'registration_number' => $registration_number,
             'hpr_registration_number' => $hpr_registration_number,
+            'start_time' => $start_time,
+            'end_time' => $end_time,
             'status' => $status
         ]
     ]);

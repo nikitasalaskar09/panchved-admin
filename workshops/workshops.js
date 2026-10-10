@@ -207,8 +207,60 @@ document.addEventListener('DOMContentLoaded', () => {
     return '';
   }
 
-  // Open calendar popup directly on click inside date input fields
-  ['addWsDate', 'editWsDate'].forEach(id => {
+  function convertToDbTime(timeStr) {
+    if (!timeStr || timeStr === '-' || timeStr.trim() === '') return '';
+    const str = timeStr.trim();
+
+    // Check for 12-hour format with AM/PM e.g. "2:30 PM", "10:00 AM", "08:15 pm"
+    const ampmMatch = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)$/i);
+    if (ampmMatch) {
+      let hours = parseInt(ampmMatch[1], 10);
+      const minutes = ampmMatch[2];
+      const ampm = ampmMatch[4].toLowerCase();
+      if (ampm === 'pm' && hours < 12) hours += 12;
+      if (ampm === 'am' && hours === 12) hours = 0;
+      return `${String(hours).padStart(2, '0')}:${minutes}`;
+    }
+
+    // Check for 24-hour format e.g. "14:30", "09:15", "14:30:00", "9:00"
+    const timeMatch = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (timeMatch) {
+      const hours = parseInt(timeMatch[1], 10);
+      const minutes = timeMatch[2];
+      if (hours >= 0 && hours <= 23) {
+        return `${String(hours).padStart(2, '0')}:${minutes}`;
+      }
+    }
+
+    return '';
+  }
+
+  function formatTimeForDisplay(timeStr) {
+    if (!timeStr || timeStr === '-' || timeStr.trim() === '') return '-';
+    const trimmed = timeStr.trim();
+    if (/[ap]m/i.test(trimmed)) {
+      return trimmed;
+    }
+    const match = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (match) {
+      let hours = parseInt(match[1], 10);
+      const minutes = match[2];
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${ampm}`;
+    }
+    return trimmed;
+  }
+
+  function formatFeeValue(val) {
+    if (val === undefined || val === null || val === '') return '';
+    const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return '';
+    return String(Math.round(num));
+  }
+
+  // Open calendar & time picker popup directly on click inside date and time input fields
+  ['addWsDate', 'editWsDate', 'addWsTime', 'editWsTime'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('click', () => {
@@ -218,6 +270,72 @@ document.addEventListener('DOMContentLoaded', () => {
           } catch (err) {
             // Ignore if active or unsupported
           }
+        }
+      });
+    }
+  });
+
+  // Restrict number input on Workshop Name, Workshop Subtitle, and Assign Speaker fields in Add & Edit Workshop forms
+  ['addWsName', 'addWsSubtitle', 'addWsAssignSpeaker', 'editWsName', 'editWsSubtitle', 'editWsAssignSpeaker'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key >= '0' && e.key <= '9' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+        }
+      });
+      el.addEventListener('input', () => {
+        const cleanVal = el.value.replace(/[0-9]/g, '');
+        if (el.value !== cleanVal) {
+          el.value = cleanVal;
+        }
+      });
+      el.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData)?.getData('text');
+        if (pastedText && /[0-9]/.test(pastedText)) {
+          e.preventDefault();
+          const cleanText = pastedText.replace(/[0-9]/g, '');
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          const currentVal = el.value;
+          el.value = currentVal.slice(0, start) + cleanText + currentVal.slice(end);
+          el.setSelectionRange(start + cleanText.length, start + cleanText.length);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    }
+  });
+
+  // Restrict text input on Registration Fee field in Add & Edit Workshop forms (digits only)
+  ['addWsFee', 'editWsFee'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (e) => {
+        const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+        if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) {
+          return;
+        }
+        if (e.key < '0' || e.key > '9') {
+          e.preventDefault();
+        }
+      });
+      el.addEventListener('input', () => {
+        const cleanVal = el.value.replace(/[^0-9]/g, '');
+        if (el.value !== cleanVal) {
+          el.value = cleanVal;
+        }
+      });
+      el.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData)?.getData('text');
+        if (pastedText && /[^0-9]/.test(pastedText)) {
+          e.preventDefault();
+          const cleanText = pastedText.replace(/[^0-9]/g, '');
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          const currentVal = el.value;
+          el.value = currentVal.slice(0, start) + cleanText + currentVal.slice(end);
+          el.setSelectionRange(start + cleanText.length, start + cleanText.length);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
         }
       });
     }
@@ -304,6 +422,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dateInp.value = '';
         dateInp.removeAttribute('value');
       }
+      const timeInp = document.getElementById('addWsTime');
+      if (timeInp) {
+        timeInp.value = '';
+        timeInp.removeAttribute('value');
+      }
       const attendeeSelect = document.getElementById('addWsAttendee');
       if (attendeeSelect) {
         attendeeSelect.selectedIndex = 0;
@@ -343,6 +466,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams();
     params.set('page', String(currentPage));
     params.set('limit', String(itemsPerPage));
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlRole = urlParams.get('role') || urlParams.get('portal') || urlParams.get('user_type') || '';
+    const urlAttendee = urlParams.get('attendee') || urlParams.get('attendee_type') || urlParams.get('audience') || '';
+    if (urlRole) params.set('role', urlRole);
+    if (urlAttendee) params.set('attendee', urlAttendee);
 
     if (currentSearchQuery.trim()) {
       params.set('search', currentSearchQuery.trim());
@@ -420,7 +549,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const rawDate = ws.date || ws.form_date || ws.formatted_date || '';
       const formDate = convertToDbDate(rawDate);
       const displayDate = ws.formatted_date || formatDateForDisplay(rawDate);
-      const time = ws.time || '-';
+      const rawTime = ws.time || '';
+      const displayTime = formatTimeForDisplay(rawTime);
       const attendee = ws.attendee_type || ws.attendee || '-';
       const registrations = ws.registrations ?? (ws.enrolled ?? 0);
       const feeNum = Number(ws.fee || ws.price || 0);
@@ -431,6 +561,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const row = document.createElement('tr');
       row.className = 'workshop-row';
+      const isBoth = attendee.toLowerCase() === 'both' || attendee.toLowerCase() === 'all';
+      const isDoctorVisible = ws.is_visible_to_doctor !== undefined ? Boolean(ws.is_visible_to_doctor) : (isBoth || attendee.toLowerCase().includes('doctor'));
+      const isPatientVisible = ws.is_visible_to_patient !== undefined ? Boolean(ws.is_visible_to_patient) : (isBoth || attendee.toLowerCase().includes('patient'));
+
       row.setAttribute('data-id', String(wsId));
       row.setAttribute('data-workshop-id', displayId);
       row.setAttribute('data-name', title);
@@ -439,8 +573,10 @@ document.addEventListener('DOMContentLoaded', () => {
       row.setAttribute('data-meet-link', meetLink);
       row.setAttribute('data-date', displayDate);
       row.setAttribute('data-form-date', formDate);
-      row.setAttribute('data-time', time);
+      row.setAttribute('data-time', displayTime);
       row.setAttribute('data-attendee', attendee);
+      row.setAttribute('data-visible-doctor', String(isDoctorVisible));
+      row.setAttribute('data-visible-patient', String(isPatientVisible));
       row.setAttribute('data-registrations', String(registrations));
       row.setAttribute('data-fee', String(feeNum));
       row.setAttribute('data-status', status);
@@ -450,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.innerHTML = `
         <td class="td-ws-name font-bold ws-name-cell">${title}</td>
         <td class="td-date text-muted-dark ws-date-cell">${displayDate}</td>
-        <td class="td-time text-muted-dark ws-time-cell">${time}</td>
+        <td class="td-time text-muted-dark ws-time-cell">${displayTime}</td>
         <td class="td-attendee text-muted-dark ws-attendee-cell">${attendee}</td>
         <td class="td-registrations text-muted-dark ws-registrations-cell">${registrations}</td>
         <td class="td-status">
@@ -757,6 +893,14 @@ document.addEventListener('DOMContentLoaded', () => {
               } else {
                 el.removeAttribute('value');
               }
+            } else if (el.type === 'time' || id === 'editWsTime' || id === 'addWsTime') {
+              const dbTime = convertToDbTime(val);
+              el.value = dbTime;
+              if (dbTime) {
+                el.setAttribute('value', dbTime);
+              } else {
+                el.removeAttribute('value');
+              }
             } else if (el.tagName === 'SELECT') {
               el.value = (val !== undefined && val !== null) ? String(val) : '';
               if (!el.value && val) {
@@ -793,7 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setVal('editWsAttendee', currentTargetRow.getAttribute('data-attendee') || currentTargetRow.querySelector('.ws-attendee-cell')?.textContent.trim() || '');
         
         const feeVal = currentTargetRow.getAttribute('data-fee') || '';
-        setVal('editWsFee', feeVal ? (feeVal.startsWith('₹') ? feeVal : `₹${feeVal}`) : '');
+        setVal('editWsFee', formatFeeValue(feeVal));
         setVal('editWsAbout', currentTargetRow.getAttribute('data-about') || '');
 
         switchView(editWorkshopView);
@@ -827,7 +971,7 @@ document.addEventListener('DOMContentLoaded', () => {
               setVal('editWsTime', d.time || '');
               setVal('editWsAttendee', d.attendee_type || 'Doctor');
               const freshFee = String(d.fee ?? d.price ?? '');
-              setVal('editWsFee', freshFee ? (freshFee.startsWith('₹') ? freshFee : `₹${freshFee}`) : '');
+              setVal('editWsFee', formatFeeValue(freshFee));
               setVal('editWsAbout', d.about || '');
             }
           } catch (err) {

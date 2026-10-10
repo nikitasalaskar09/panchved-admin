@@ -50,16 +50,50 @@ if ($connection1) {
 // Check existing columns
 $has_assigned_doctor = false;
 $has_assign_doctor = false;
+$has_assigned_doctor_one = false;
+$has_assigned_doctor_1 = false;
+$has_assigned_doctor_2 = false;
+$has_assign_doctor_2 = false;
+$has_assign_doctor_two = false;
+$has_assigned_doctor_two = false;
 if ($connection1) {
     $col_res = @mysqli_query($connection1, "SHOW COLUMNS FROM packages");
     if ($col_res) {
         while ($c = mysqli_fetch_assoc($col_res)) {
             if ($c['Field'] === 'assigned_doctor') $has_assigned_doctor = true;
             if ($c['Field'] === 'assign_doctor') $has_assign_doctor = true;
+            if ($c['Field'] === 'assigned_doctor_one') $has_assigned_doctor_one = true;
+            if ($c['Field'] === 'assigned_doctor_1') $has_assigned_doctor_1 = true;
+            if ($c['Field'] === 'assigned_doctor_2') $has_assigned_doctor_2 = true;
+            if ($c['Field'] === 'assign_doctor_2') $has_assign_doctor_2 = true;
+            if ($c['Field'] === 'assign_doctor_two') $has_assign_doctor_two = true;
+            if ($c['Field'] === 'assigned_doctor_two') $has_assigned_doctor_two = true;
         }
     }
 }
-$doc_field_sql = $has_assign_doctor ? "assign_doctor as assigned_doctor," : ($has_assigned_doctor ? "assigned_doctor," : "NULL as assigned_doctor,");
+if ($has_assigned_doctor_one) {
+    $doc_field_sql = "assigned_doctor_one as assigned_doctor,";
+} elseif ($has_assigned_doctor_1) {
+    $doc_field_sql = "assigned_doctor_1 as assigned_doctor,";
+} elseif ($has_assign_doctor) {
+    $doc_field_sql = "assign_doctor as assigned_doctor,";
+} elseif ($has_assigned_doctor) {
+    $doc_field_sql = "assigned_doctor,";
+} else {
+    $doc_field_sql = "NULL as assigned_doctor,";
+}
+
+if ($has_assign_doctor_two) {
+    $doc_field_sql .= " assign_doctor_two as assigned_doctor_2,";
+} elseif ($has_assigned_doctor_two) {
+    $doc_field_sql .= " assigned_doctor_two as assigned_doctor_2,";
+} elseif ($has_assigned_doctor_2) {
+    $doc_field_sql .= " assigned_doctor_2,";
+} elseif ($has_assign_doctor_2) {
+    $doc_field_sql .= " assign_doctor_2 as assigned_doctor_2,";
+} else {
+    $doc_field_sql .= " NULL as assigned_doctor_2,";
+}
 
 $where_clauses = [];
 $params = [];
@@ -155,10 +189,27 @@ if ($stmt) {
 
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
-            if (empty($row['assigned_doctor'])) {
-                $row['assigned_doctor'] = $row['assign_doctor'] ?? '-';
+            $doc1 = trim((string)($row['assigned_doctor'] ?? $row['assign_doctor'] ?? ''));
+            $doc2 = trim((string)($row['assigned_doctor_2'] ?? ''));
+
+            if ($doc2 === '' && strpos($doc1, ',') !== false) {
+                $parts = array_map('trim', explode(',', $doc1, 2));
+                $doc1 = $parts[0];
+                $doc2 = $parts[1] ?? '';
             }
-            $row['assign_doctor'] = $row['assigned_doctor'];
+
+            $row['assigned_doctor'] = $doc1;
+            $row['assigned_doctor_1'] = $doc1;
+            $row['assigned_doctor_2'] = $doc2;
+            $row['assign_doctor'] = $doc1;
+            $row['assign_doctor_1'] = $doc1;
+            $row['assign_doctor_2'] = $doc2;
+
+            $combined_doc = $doc1;
+            if ($doc2 !== '') {
+                $combined_doc = $doc1 !== '' ? ($doc1 . ', ' . $doc2) : $doc2;
+            }
+            $row['combined_doctor'] = $combined_doc ?: '-';
             $packages[] = $row;
         }
     }

@@ -54,6 +54,8 @@ if (strcasecmp($attendee_type, 'patient') === 0) {
     $attendee_type = 'Patient';
 } elseif (strcasecmp($attendee_type, 'doctor') === 0) {
     $attendee_type = 'Doctor';
+} elseif (strcasecmp($attendee_type, 'both') === 0 || strcasecmp($attendee_type, 'all') === 0) {
+    $attendee_type = 'Both';
 }
 $date = trim((string) ($data['date'] ?? ''));
 $time = trim((string) ($data['time'] ?? ''));

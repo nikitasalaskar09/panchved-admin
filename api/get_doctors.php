@@ -150,6 +150,8 @@ $data_sql = "
         area,
         registration_number,
         hpr_registration_number,
+        start_time,
+        end_time,
         status,
         created_at
     FROM doctors
@@ -188,6 +190,8 @@ if ($data_result) {
         }
         $doc['id'] = (int) $doc['id'];
         $doc['years_of_experience'] = (int) $doc['years_of_experience'];
+        $doc['start_time'] = !empty($doc['start_time']) ? $doc['start_time'] : '09:00:00';
+        $doc['end_time'] = !empty($doc['end_time']) ? $doc['end_time'] : '17:00:00';
         $doctors[] = $doc;
     }
 } else {
@@ -207,6 +211,8 @@ if ($data_result) {
         $d_area,
         $d_registration_number,
         $d_hpr_registration_number,
+        $d_start_time,
+        $d_end_time,
         $d_status,
         $d_created_at
     );
@@ -226,6 +232,8 @@ if ($data_result) {
             'area' => $d_area,
             'registration_number' => $d_registration_number,
             'hpr_registration_number' => $d_hpr_registration_number,
+            'start_time' => $d_start_time ?: '09:00:00',
+            'end_time' => $d_end_time ?: '17:00:00',
             'status' => $d_status,
             'created_at' => $d_created_at
         ];

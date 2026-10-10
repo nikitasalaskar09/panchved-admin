@@ -23,11 +23,16 @@ if ($raw_input !== false && trim($raw_input) !== '') {
 
 $search = trim((string) ($_GET['search'] ?? $body_data['search'] ?? ''));
 $status = trim((string) ($_GET['status'] ?? $body_data['status'] ?? ''));
-$attendee = trim((string) ($_GET['attendee'] ?? $_GET['attendee_type'] ?? $body_data['attendee'] ?? $body_data['attendee_type'] ?? ''));
-$role = trim((string) ($_GET['role'] ?? $body_data['role'] ?? ''));
+$attendee = trim((string) ($_GET['attendee'] ?? $_GET['attendee_type'] ?? $_GET['audience'] ?? $body_data['attendee'] ?? $body_data['attendee_type'] ?? $body_data['audience'] ?? ''));
+$role = trim((string) ($_GET['role'] ?? $_GET['portal'] ?? $_GET['user_type'] ?? $body_data['role'] ?? $body_data['portal'] ?? $body_data['user_type'] ?? ''));
 if ($attendee === '' && $role !== '') {
-    if (strcasecmp($role, 'doctor') === 0) $attendee = 'Doctor';
-    if (strcasecmp($role, 'patient') === 0) $attendee = 'Patient';
+    if (strcasecmp($role, 'doctor') === 0 || strcasecmp($role, 'doctor_portal') === 0 || stripos($role, 'doc') !== false) {
+        $attendee = 'Doctor';
+    } elseif (strcasecmp($role, 'patient') === 0 || strcasecmp($role, 'patient_portal') === 0 || stripos($role, 'pat') !== false) {
+        $attendee = 'Patient';
+    } elseif (strcasecmp($role, 'both') === 0 || strcasecmp($role, 'all') === 0) {
+        $attendee = 'Both';
+    }
 }
 $page = max(1, intval($_GET['page'] ?? $body_data['page'] ?? 1));
 $limit = max(1, intval($_GET['limit'] ?? $body_data['limit'] ?? 5));
@@ -39,20 +44,35 @@ $stat_upcoming = 0;
 $stat_past = 0;
 
 if ($connection1) {
+    $stat_filter = '';
+    if ($attendee !== '' && strtolower($attendee) !== 'all') {
+        if (strcasecmp($attendee, 'both') === 0) {
+            $stat_filter = " WHERE (attendee_type = 'Both' OR attendee_type = 'All')";
+        } elseif (strcasecmp($attendee, 'doctor') === 0 || stripos($attendee, 'doc') !== false) {
+            $stat_filter = " WHERE (attendee_type = 'Doctor' OR attendee_type = 'Both' OR attendee_type = 'All' OR attendee_type LIKE '%Doctor%')";
+        } elseif (strcasecmp($attendee, 'patient') === 0 || stripos($attendee, 'pat') !== false) {
+            $stat_filter = " WHERE (attendee_type = 'Patient' OR attendee_type = 'Both' OR attendee_type = 'All' OR attendee_type LIKE '%Patient%')";
+        }
+    }
+
     // 1. Total Workshops
-    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops");
+    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops" . ($stat_filter ? $stat_filter : ''));
     if ($res && $row = mysqli_fetch_assoc($res)) {
         $stat_total = (int)$row['total'];
     }
 
     // 2. Upcoming Workshops
-    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops WHERE status = 'Upcoming' OR (status NOT IN ('Completed', 'Past', 'Cancelled') AND date >= CURDATE())");
+    $upcoming_clause = "status = 'Upcoming' OR (status NOT IN ('Completed', 'Past', 'Cancelled') AND date >= CURDATE())";
+    $upcoming_where = $stat_filter ? ($stat_filter . " AND (" . $upcoming_clause . ")") : (" WHERE " . $upcoming_clause);
+    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops" . $upcoming_where);
     if ($res && $row = mysqli_fetch_assoc($res)) {
         $stat_upcoming = (int)$row['total'];
     }
 
     // 3. Past / Completed Workshops
-    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops WHERE status IN ('Completed', 'Past') OR (status NOT IN ('Upcoming') AND date < CURDATE())");
+    $past_clause = "status IN ('Completed', 'Past') OR (status NOT IN ('Upcoming') AND date < CURDATE())";
+    $past_where = $stat_filter ? ($stat_filter . " AND (" . $past_clause . ")") : (" WHERE " . $past_clause);
+    $res = @mysqli_query($connection1, "SELECT COUNT(*) as total FROM workshops" . $past_where);
     if ($res && $row = mysqli_fetch_assoc($res)) {
         $stat_past = (int)$row['total'];
     }
@@ -118,10 +138,18 @@ if ($status !== '' && strtolower($status) !== 'all') {
 }
 
 if ($attendee !== '' && strtolower($attendee) !== 'all') {
-    $where_clauses[] = "(attendee_type = ? OR attendee_type LIKE ?)";
-    $params[] = $attendee;
-    $params[] = '%' . $attendee . '%';
-    $types .= 'ss';
+    if (strcasecmp($attendee, 'both') === 0) {
+        $where_clauses[] = "(attendee_type = 'Both' OR attendee_type = 'All')";
+    } elseif (strcasecmp($attendee, 'doctor') === 0) {
+        $where_clauses[] = "(attendee_type = 'Doctor' OR attendee_type = 'Both' OR attendee_type = 'All' OR attendee_type LIKE '%Doctor%')";
+    } elseif (strcasecmp($attendee, 'patient') === 0) {
+        $where_clauses[] = "(attendee_type = 'Patient' OR attendee_type = 'Both' OR attendee_type = 'All' OR attendee_type LIKE '%Patient%')";
+    } else {
+        $where_clauses[] = "(attendee_type = ? OR attendee_type = 'Both' OR attendee_type = 'All' OR attendee_type LIKE ?)";
+        $params[] = $attendee;
+        $params[] = '%' . $attendee . '%';
+        $types .= 'ss';
+    }
 }
 
 $where_sql = '';
@@ -244,6 +272,10 @@ if ($stmt) {
                 $row['attendee_type'] = 'Doctor';
             }
             $row['attendee'] = $row['attendee_type'];
+            $is_both = (strcasecmp($row['attendee_type'], 'Both') === 0 || strcasecmp($row['attendee_type'], 'All') === 0);
+            $row['is_visible_to_doctor'] = ($is_both || stripos($row['attendee_type'], 'Doctor') !== false);
+            $row['is_visible_to_patient'] = ($is_both || stripos($row['attendee_type'], 'Patient') !== false);
+            $row['audience'] = $row['attendee_type'];
 
             if (!isset($row['registrations']) || $row['registrations'] === null) {
                 $row['registrations'] = $row['enrolled'] ?? 0;

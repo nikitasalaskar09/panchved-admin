@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalDocGender = document.getElementById('modalDocGender');
   const modalDocDob = document.getElementById('modalDocDob');
   const modalDocPhone = document.getElementById('modalDocPhone');
+  const modalDocStartTime = document.getElementById('modalDocStartTime');
+  const modalDocEndTime = document.getElementById('modalDocEndTime');
   const modalDocEmail = document.getElementById('modalDocEmail');
   const modalDocYoe = document.getElementById('modalDocYoe');
   const modalDocExpertise = document.getElementById('modalDocExpertise');
@@ -203,6 +205,45 @@ document.addEventListener('DOMContentLoaded', () => {
     return trimmed;
   }
 
+  // Time Helpers
+  function formatTimeForInput(timeStr) {
+    if (!timeStr || String(timeStr).trim() === '' || timeStr === '-') return '';
+    const str = String(timeStr).trim();
+    const match = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+    if (match) {
+      const hh = String(parseInt(match[1], 10)).padStart(2, '0');
+      const mm = match[2];
+      return `${hh}:${mm}`;
+    }
+    const match12 = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (match12) {
+      let hh = parseInt(match12[1], 10);
+      const mm = match12[2];
+      const isPM = match12[3].toUpperCase() === 'PM';
+      if (isPM && hh < 12) hh += 12;
+      if (!isPM && hh === 12) hh = 0;
+      return `${String(hh).padStart(2, '0')}:${mm}`;
+    }
+    return str;
+  }
+
+  function formatTimeForDisplay(timeStr) {
+    if (!timeStr || String(timeStr).trim() === '' || timeStr === '-') return '-';
+    const str = String(timeStr).trim();
+    if (/AM|PM/i.test(str)) return str;
+
+    const match = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+    if (match) {
+      let hh = parseInt(match[1], 10);
+      const mm = match[2];
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      hh = hh % 12;
+      if (hh === 0) hh = 12;
+      return `${String(hh).padStart(2, '0')}:${mm} ${ampm}`;
+    }
+    return str;
+  }
+
   // Date Helpers & 18+ DOB Restriction
   function getMaxDoctorDob() {
     const today = new Date();
@@ -253,6 +294,72 @@ document.addEventListener('DOMContentLoaded', () => {
       el.addEventListener('click', () => {
         if (typeof el.showPicker === 'function') {
           try { el.showPicker(); } catch (_) {}
+        }
+      });
+    }
+  });
+
+  // Restrict number input on Full Name, Expertise, and Area fields in Add & Edit Doctor forms
+  ['addFullName', 'addExpertise', 'addArea', 'editFullName', 'editExpertise', 'editArea'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key >= '0' && e.key <= '9' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+        }
+      });
+      el.addEventListener('input', () => {
+        const cleanVal = el.value.replace(/[0-9]/g, '');
+        if (el.value !== cleanVal) {
+          el.value = cleanVal;
+        }
+      });
+      el.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData)?.getData('text');
+        if (pastedText && /[0-9]/.test(pastedText)) {
+          e.preventDefault();
+          const cleanText = pastedText.replace(/[0-9]/g, '');
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          const currentVal = el.value;
+          el.value = currentVal.slice(0, start) + cleanText + currentVal.slice(end);
+          el.setSelectionRange(start + cleanText.length, start + cleanText.length);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    }
+  });
+
+  // Restrict text input on Phone Number and YOE fields in Add & Edit Doctor forms (digits only)
+  ['addPhone', 'addYoe', 'editPhone', 'editYoe'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('keydown', (e) => {
+        const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+        if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) {
+          return;
+        }
+        if (e.key < '0' || e.key > '9') {
+          e.preventDefault();
+        }
+      });
+      el.addEventListener('input', () => {
+        const cleanVal = el.value.replace(/[^0-9]/g, '');
+        if (el.value !== cleanVal) {
+          el.value = cleanVal;
+        }
+      });
+      el.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData)?.getData('text');
+        if (pastedText && /[^0-9]/.test(pastedText)) {
+          e.preventDefault();
+          const cleanText = pastedText.replace(/[^0-9]/g, '');
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          const currentVal = el.value;
+          el.value = currentVal.slice(0, start) + cleanText + currentVal.slice(end);
+          el.setSelectionRange(start + cleanText.length, start + cleanText.length);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
         }
       });
     }
@@ -474,6 +581,8 @@ document.addEventListener('DOMContentLoaded', () => {
       row.setAttribute('data-display-dob', displayDob);
       row.setAttribute('data-phone', doc.phone_number || '-');
       row.setAttribute('data-gender', doc.gender || '-');
+      row.setAttribute('data-start-time', doc.start_time || '09:00:00');
+      row.setAttribute('data-end-time', doc.end_time || '17:00:00');
       row.setAttribute('data-email', doc.email || '-');
       row.setAttribute('data-yoe', String(yoe));
       row.setAttribute('data-expertise', expertise);
@@ -734,6 +843,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      const editStartTimeEl = document.getElementById('editStartTime');
+      if (editStartTimeEl) editStartTimeEl.value = formatTimeForInput(row.getAttribute('data-start-time')) || '09:00';
+
+      const editEndTimeEl = document.getElementById('editEndTime');
+      if (editEndTimeEl) editEndTimeEl.value = formatTimeForInput(row.getAttribute('data-end-time')) || '17:00';
+
       const emailEl = document.getElementById('editEmail');
       if (emailEl) emailEl.value = row.getAttribute('data-email') || '';
 
@@ -783,6 +898,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
+          if (editStartTimeEl && d.start_time) {
+            editStartTimeEl.value = formatTimeForInput(d.start_time);
+          }
+          if (editEndTimeEl && d.end_time) {
+            editEndTimeEl.value = formatTimeForInput(d.end_time);
+          }
+
           if (emailEl) emailEl.value = d.email || '';
           if (yoeEl) yoeEl.value = d.years_of_experience ?? 0;
           if (expEl) expEl.value = d.expertise || '';
@@ -813,6 +935,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (modalDocGender) modalDocGender.textContent = row.getAttribute('data-gender') || '-';
       if (modalDocDob) modalDocDob.textContent = formatDateForDisplay(rawDob);
       if (modalDocPhone) modalDocPhone.textContent = row.getAttribute('data-phone') || '-';
+      const rawStartTime = row.getAttribute('data-start-time') || '09:00:00';
+      const rawEndTime = row.getAttribute('data-end-time') || '17:00:00';
+      if (modalDocStartTime) modalDocStartTime.textContent = formatTimeForDisplay(rawStartTime);
+      if (modalDocEndTime) modalDocEndTime.textContent = formatTimeForDisplay(rawEndTime);
       if (modalDocEmail) modalDocEmail.textContent = row.getAttribute('data-email') || '-';
       if (modalDocYoe) modalDocYoe.textContent = row.getAttribute('data-yoe') || '0';
       if (modalDocExpertise) modalDocExpertise.textContent = row.getAttribute('data-expertise') || '-';
@@ -841,6 +967,8 @@ document.addEventListener('DOMContentLoaded', () => {
           if (modalDocGender) modalDocGender.textContent = d.gender || '-';
           if (modalDocDob) modalDocDob.textContent = formatDateForDisplay(d.date_of_birth || rawDob);
           if (modalDocPhone) modalDocPhone.textContent = d.phone_number || '-';
+          if (modalDocStartTime) modalDocStartTime.textContent = formatTimeForDisplay(d.start_time || rawStartTime);
+          if (modalDocEndTime) modalDocEndTime.textContent = formatTimeForDisplay(d.end_time || rawEndTime);
           if (modalDocEmail) modalDocEmail.textContent = d.email || '-';
           if (modalDocYoe) modalDocYoe.textContent = String(d.years_of_experience ?? 0);
           if (modalDocExpertise) modalDocExpertise.textContent = d.expertise || '-';
@@ -885,6 +1013,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const dob = document.getElementById('addDob').value.trim();
       const phone = document.getElementById('addPhone').value.trim();
       const gender = document.getElementById('addGender').value.trim();
+      const startTime = document.getElementById('addStartTime').value.trim();
+      const endTime = document.getElementById('addEndTime').value.trim();
       const email = document.getElementById('addEmail').value.trim();
       const yoe = document.getElementById('addYoe').value.trim();
       const expertise = document.getElementById('addExpertise').value.trim();
@@ -894,6 +1024,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!fullName) {
         showToast('Please enter doctor full name.', 'error');
+        document.getElementById('addFullName').focus();
+        return;
+      }
+      if (/[0-9]/.test(fullName)) {
+        showToast('Full name should not contain numbers.', 'error');
         document.getElementById('addFullName').focus();
         return;
       }
@@ -908,9 +1043,29 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('addPhone').focus();
         return;
       }
+      if (/[^0-9]/.test(phone)) {
+        showToast('Phone number must contain only numbers.', 'error');
+        document.getElementById('addPhone').focus();
+        return;
+      }
+      if (phone.length !== 10) {
+        showToast('Phone number must be exactly 10 digits.', 'error');
+        document.getElementById('addPhone').focus();
+        return;
+      }
       if (!gender) {
         showToast('Please select doctor gender.', 'error');
         document.getElementById('addGender').focus();
+        return;
+      }
+      if (!startTime) {
+        showToast('Please select doctor start time.', 'error');
+        document.getElementById('addStartTime').focus();
+        return;
+      }
+      if (!endTime) {
+        showToast('Please select doctor end time.', 'error');
+        document.getElementById('addEndTime').focus();
         return;
       }
       if (!email) {
@@ -923,13 +1078,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('addYoe').focus();
         return;
       }
+      if (/[^0-9]/.test(yoe)) {
+        showToast('Years of experience must contain only numbers.', 'error');
+        document.getElementById('addYoe').focus();
+        return;
+      }
       if (!expertise) {
         showToast('Please enter doctor expertise.', 'error');
         document.getElementById('addExpertise').focus();
         return;
       }
+      if (/[0-9]/.test(expertise)) {
+        showToast('Expertise should not contain numbers.', 'error');
+        document.getElementById('addExpertise').focus();
+        return;
+      }
       if (!area) {
         showToast('Please enter area of specialization.', 'error');
+        document.getElementById('addArea').focus();
+        return;
+      }
+      if (/[0-9]/.test(area)) {
+        showToast('Area should not contain numbers.', 'error');
         document.getElementById('addArea').focus();
         return;
       }
@@ -956,6 +1126,8 @@ document.addEventListener('DOMContentLoaded', () => {
         date_of_birth: convertToDbDate(dob),
         phone_number: phone,
         gender: gender,
+        start_time: startTime,
+        end_time: endTime,
         email: email,
         years_of_experience: Number(yoe) || 0,
         expertise: expertise,
@@ -1007,6 +1179,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const dob = document.getElementById('editDob').value.trim();
       const phone = document.getElementById('editPhone').value.trim();
       const gender = document.getElementById('editGender').value.trim();
+      const startTime = document.getElementById('editStartTime').value.trim();
+      const endTime = document.getElementById('editEndTime').value.trim();
       const email = document.getElementById('editEmail').value.trim();
       const yoe = document.getElementById('editYoe').value.trim();
       const expertise = document.getElementById('editExpertise').value.trim();
@@ -1016,6 +1190,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!fullName) {
         showToast('Please enter doctor full name.', 'error');
+        document.getElementById('editFullName').focus();
+        return;
+      }
+      if (/[0-9]/.test(fullName)) {
+        showToast('Full name should not contain numbers.', 'error');
         document.getElementById('editFullName').focus();
         return;
       }
@@ -1030,9 +1209,29 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editPhone').focus();
         return;
       }
+      if (/[^0-9]/.test(phone)) {
+        showToast('Phone number must contain only numbers.', 'error');
+        document.getElementById('editPhone').focus();
+        return;
+      }
+      if (phone.length !== 10) {
+        showToast('Phone number must be exactly 10 digits.', 'error');
+        document.getElementById('editPhone').focus();
+        return;
+      }
       if (!gender) {
         showToast('Please select doctor gender.', 'error');
         document.getElementById('editGender').focus();
+        return;
+      }
+      if (!startTime) {
+        showToast('Please select doctor start time.', 'error');
+        document.getElementById('editStartTime').focus();
+        return;
+      }
+      if (!endTime) {
+        showToast('Please select doctor end time.', 'error');
+        document.getElementById('editEndTime').focus();
         return;
       }
       if (!email) {
@@ -1045,13 +1244,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('editYoe').focus();
         return;
       }
+      if (/[^0-9]/.test(yoe)) {
+        showToast('Years of experience must contain only numbers.', 'error');
+        document.getElementById('editYoe').focus();
+        return;
+      }
       if (!expertise) {
         showToast('Please enter doctor expertise.', 'error');
         document.getElementById('editExpertise').focus();
         return;
       }
+      if (/[0-9]/.test(expertise)) {
+        showToast('Expertise should not contain numbers.', 'error');
+        document.getElementById('editExpertise').focus();
+        return;
+      }
       if (!area) {
         showToast('Please enter area of specialization.', 'error');
+        document.getElementById('editArea').focus();
+        return;
+      }
+      if (/[0-9]/.test(area)) {
+        showToast('Area should not contain numbers.', 'error');
         document.getElementById('editArea').focus();
         return;
       }
@@ -1081,6 +1295,8 @@ document.addEventListener('DOMContentLoaded', () => {
         date_of_birth: dbDob,
         phone_number: phone,
         gender: gender,
+        start_time: startTime,
+        end_time: endTime,
         email: email,
         years_of_experience: Number(yoe) || 0,
         expertise: expertise,

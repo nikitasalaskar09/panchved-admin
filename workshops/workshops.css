@@ -270,14 +270,16 @@
   transition: border-color var(--transition-fast, 0.18s ease), box-shadow var(--transition-fast, 0.18s ease);
 }
 
-.workshop-form-card input[type="date"].form-control-input {
+.workshop-form-card input[type="date"].form-control-input,
+.workshop-form-card input[type="time"].form-control-input {
   cursor: pointer;
   padding-right: 10px;
   font-family: inherit;
   color: var(--text-primary, #0F172A);
 }
 
-.workshop-form-card input[type="date"].form-control-input::-webkit-calendar-picker-indicator {
+.workshop-form-card input[type="date"].form-control-input::-webkit-calendar-picker-indicator,
+.workshop-form-card input[type="time"].form-control-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.65;
   padding: 5px;
@@ -285,7 +287,8 @@
   transition: opacity var(--transition-fast, 0.18s ease), background-color var(--transition-fast, 0.18s ease);
 }
 
-.workshop-form-card input[type="date"].form-control-input::-webkit-calendar-picker-indicator:hover {
+.workshop-form-card input[type="date"].form-control-input::-webkit-calendar-picker-indicator:hover,
+.workshop-form-card input[type="time"].form-control-input::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
   background-color: #F1F5F9;
 }

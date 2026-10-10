@@ -40,6 +40,8 @@ if (strcasecmp($attendee_type, 'patient') === 0) {
     $attendee_type = 'Patient';
 } elseif (strcasecmp($attendee_type, 'doctor') === 0) {
     $attendee_type = 'Doctor';
+} elseif (strcasecmp($attendee_type, 'both') === 0 || strcasecmp($attendee_type, 'all') === 0) {
+    $attendee_type = 'Both';
 }
 $raw_date = trim((string) ($data['date'] ?? ''));
 $date = date('Y-m-d');
@@ -181,6 +183,9 @@ if (mysqli_stmt_execute($stmt)) {
             'time' => $time,
             'attendee_type' => $attendee_type,
             'attendee' => $attendee_type,
+            'audience' => $attendee_type,
+            'is_visible_to_doctor' => (strcasecmp($attendee_type, 'Doctor') === 0 || strcasecmp($attendee_type, 'Both') === 0 || strcasecmp($attendee_type, 'All') === 0),
+            'is_visible_to_patient' => (strcasecmp($attendee_type, 'Patient') === 0 || strcasecmp($attendee_type, 'Both') === 0 || strcasecmp($attendee_type, 'All') === 0),
             'registrations' => $registrations,
             'fee' => $fee,
             'status' => $status

@@ -106,6 +106,10 @@ if (empty($workshop['attendee_type'])) {
     $workshop['attendee_type'] = 'Doctor';
 }
 $workshop['attendee'] = $workshop['attendee_type'];
+$is_both = (strcasecmp($workshop['attendee_type'], 'Both') === 0 || strcasecmp($workshop['attendee_type'], 'All') === 0);
+$workshop['is_visible_to_doctor'] = ($is_both || stripos($workshop['attendee_type'], 'Doctor') !== false);
+$workshop['is_visible_to_patient'] = ($is_both || stripos($workshop['attendee_type'], 'Patient') !== false);
+$workshop['audience'] = $workshop['attendee_type'];
 
 if (!isset($workshop['registrations']) || $workshop['registrations'] === null) {
     $workshop['registrations'] = $workshop['enrolled'] ?? 0;
